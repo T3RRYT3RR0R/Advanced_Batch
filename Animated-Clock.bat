@@ -4,7 +4,7 @@
 @Echo off
 REM Author: T3RRY : 19/05/2024
 REM        updated: 13/07/2026
-REM Its_About_Time demonstrates various advanced batch techniques by way of
+REM Animated-Clock demonstrates various advanced batch techniques by way of
 REM a feature rich animated clock, with peristent user configuration.
 
         If /i not "%~1" == "Main" If /i not "%~1" == "XCOPYcontroller" call :Set_Font "lucida console" 18 nomax %~1 || EXIT
