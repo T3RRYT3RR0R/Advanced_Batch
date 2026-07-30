@@ -4,24 +4,25 @@
 @Echo off
 REM Author: T3RRY : 19/05/2024
 REM        updated: 13/07/2026
-REM Animated-Clock demonstrates various advanced batch techniques by way of
+REM this Script demonstrates various advanced batch techniques by way of
 REM a feature rich animated clock, with peristent user configuration.
 
-        If /i not "%~1" == "Main" If /i not "%~1" == "XCOPYcontroller" call :Set_Font "lucida console" 18 nomax %~1 || EXIT
+  if defined WT_Session (
+    If /i not "%~1" == "Main" If /i not "%~1" == "XCOPYcontroller" (
+      %= preserve font and mode resize capability if run from WindowsTerminal =%
+      If /i not "%~1" == "delTemp" call :Set_Font "lucida console" 18 nomax %~1 || EXIT
+    )
+  ) else (
+    %= Default font resize method =%
+    if not defined WT_Session call :SetFont 18 "lucida console"
+  )
 
-	(Title )
-	REM execute target threads
-        Set "Script=Main"
-        If not defined WT_SESSION Set "resizeable=true"
-	If not "%~1"=="" If not "%~1"=="_" Goto:%1
-        Set "thisFile=%~nx0"
-        If defined WT_SESSION (Set "resizeable="
-          Echo(This script performs window resizing that Windows Terminal does not support
-          Echo(The script will still run, but will not appear as intended
-          PAUSE
-          CLS
-        )
-	Goto:Setup
+  (Title )
+  REM execute target threads
+  Set "Script=Main"
+  If not "%~1"=="" If not "%~1"=="_" Goto:%1
+  Set "thisFile=%~nx0"
+  Goto:Setup
 
 :Main
   Setlocal EnableDelayedExpansion
@@ -56,20 +57,23 @@ rem 6000 CS / minute. 6000 / 510 steps =11 CS to cycle hue wheel in 1 minute, wh
 
 REM Branchless version of phase.hue uses abs from the lib\maths library by IcarusLives
 REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
-  Set ^"phase.hue=Set /a "hue.step=hue.step %% 510 + hue_acc","p=(hue.step)-255, rr=255-(M=(p>>31),(p^M)-M)","p=((hue.step+170)%%510)-255, gg=255-(M=(p>>31),(p^M)-M)","p=((hue.step+340)%%510)-255, bb=255-(M=(p>>31),(p^M)-M)"^"
+  Set ^"phase.hue=Set /a "hue.step=hue.step %% 510 + hue_acc","p=(hue.step)-255, rr=255-(M=(p>>31),(p^M)-M)","p=((hue.step+170)%%510)-255, gg=255-(M=(p>>31),(p^M)-M)","p=((hue.step+340)%%510)-255, bb=255-(M=(p>>31),(p^M)-M)","rr1=rr*100/120,gg1=gg*100/120,bb1=bb*100/120,rr2=rr1*100/120,gg2=gg1*100/120,bb2=bb1*100/120,rr3=rr2*100/115,gg3=gg2*100/115,bb3=bb2*100/115"^"
+
 
   %phase.hue%
 
   %= DO NOT MODIFY classKEYS ASSIGNMENTS        =% Set "colorKEYS= R G B "
   %= key literal strings are used in            =% Set "adjustKEYS= + - "
-  %= control flow + variable assignments        =% Set "stateKEYS= D spaceBar M "
+  %= control flow + variable assignments        =% Set "stateKEYS= D spaceBar M H "
   %= prevent action on Substitution Poison Key  =% For %%K in (!colorKeys!!adjustKeys!!stateKeys!) do set "Key%%K=1" 
   rem SPK is: '='
-  Set "Mute[1]=[M]ute"
-  Set "Mute[2]=un[M]ute"
  
   Set "$D[1]=38"
   Set "$D[2]=48"
+  Set "Mute[1]=[M]ute"
+  Set "Mute[2]=un[M]ute"
+  Set "Hide[1]=[H]ide border"
+  Set "Hide[2]=un[H]ide border"
   Set "$Domain[1]=Foreground"
   Set "$Domain[2]=Background"
   For %%G in (R G B) do (
@@ -77,7 +81,7 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
     set "$%%G]1=]"
     set "$[]%%G=0"
   )
-  Set /A "$[]R=1","$M=1","$D=1","$R[1]=145","$G[1]=30","$B[1]=180","$R[2]=12","$G[2]=20","$B[2]=20","$spaceBar=1"
+  Set /A "$[]R=1","$M=1","$H=1","$D=1","$R[1]=145","$G[1]=30","$B[1]=180","$R[2]=12","$G[2]=20","$B[2]=20","$spaceBar=1"
   Set "$C=R"
 
 
@@ -88,20 +92,33 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
   REM clamp macro Authored by IcarusLives and Aacini
   REM clamp Usage: || Set /a "x=VarToClamp, low=minValue, high=maxValue, VarToClamp=%clamp%"
   REM used to bound player and map and apply configuration defaults
-
   REM Set "clamp= (leq=((low-(x))>>31)+1)*low  +  (geq=(((x)-high)>>31)+1)*high  +  ^^^!(leq+geq)*(x) "
+
   Set "clamp255=$%%C[%%D]=(leq=((0-($%%C[%%D]))>>31)+1)*0  +  (geq=((($%%C[%%D])-255)>>31)+1)*255  +  ^^^!(leq+geq)*($%%C[%%D])"
 
 :Clock
+  Set "Footer=%\E%[!$lines!;1H%\E%[48;2;^!rr3^!;^!gg3^!;^!bb3^!m%\E%[K%\E%[A%\E%[48;2;^!rr2^!;^!gg2^!;^!bb2^!m%\E%[K"
+  Set "Header=%\E%[H%\E%[48;2;^!rr3^!;^!gg3^!;^!bb3^!m%\E%[K%\E%[E%\E%[48;2;^!rr2^!;^!gg2^!;^!bb2^!m%\E%[K%\E%[3;1H"
 
   for /f "tokens=1-4 delims=:.," %%a in ("!time: =0!") do (
     Set /a "now=(((1%%a*60)+1%%b)*60+1%%c)*100+1%%d-36610100","next=now+_step_CS","nextb=now+_step_CSb"
     If !now! lss 0 Set /a "now+=24*60*60*100","next=now+_step_CS","nextb=now+_step_CSb"
     Set "second=%%c"
+    Set "minute=%%b"
+    Set "hour=%%a"
+  )
+
+(
+  rem prepare header respecting past state
+  Set header=%header%
+  Set footer=%footer%
+  If "!$H!" == "2" (
+    Set "header=%\E%[H%\E%[48;2;!$R[2]!;!$G[2]!;!$B[2]!m%\E%[0J"
+    Set "footer="
   )
 
   For /l %%~ in (~)Do (%= infinite loop =%
-    For /f "tokens=1,2,3,4,5 delims= " %%Q in ("!$D! !$[]R! !$[]G! !$[]B! !$M!")Do (Title Close:TAB [D]=!$Domain[%%Q]! !$R[%%R!R!$R]%%R!=!$R[%%Q]! !$G[%%S!G!$G]%%S!=!$G[%%Q]! !$B[%%T!B!$B]%%T!=!$B[%%Q]! +/- !mute[%%U]!)
+    For /f "tokens=1,2,3,4,5,6 delims= " %%Q in ("!$D! !$[]R! !$[]G! !$[]B! !$M! !$H!")Do (Title Close:TAB [D]=!$Domain[%%Q]! !$R[%%R!R!$R]%%R!=!$R[%%Q]! !$G[%%S!G!$G]%%S!=!$G[%%Q]! !$B[%%T!B!$B]%%T!=!$B[%%Q]! +/- !mute[%%U]! !hide[%%V]!)
     Set "nKey="
     Set /P "nKey="
     If not "!nKey!"=="" (
@@ -117,14 +134,30 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
     )
     %= parse time =%
     for /f "tokens=1-4 delims=:.," %%a in ("!time: =0!")Do (
-      If not "%%c" == "!second!" if !$m! leq 1 (
-        %sound_check% CALL "%~dp0playMusic" "%Sound%" 10 false
-        set "second=%%c"
+      %sound_check% if !$m! leq 1 ( 
+        If not "%%c" == "!second!" If "%%b" == "!minute!" (
+          %sound.second%
+          set "second=%%c"
+        )
+        If not "%%b" == "!minute!" If "%%a" == "!hour!" (
+          %sound.minute%
+          set "minute=%%b"
+        )
+        If not "%%a" == "!hour!" (
+          %sound.hour%
+          set "hour=%%a"
+        )
       )
       Set /a "now=(((1%%a*60)+1%%b)*60+1%%c)*100+1%%d-36610100"
       If !now! lss 0 Set /a now+=24*60*60*100
       If !now! gtr !next! (%= every at best _step_CS =%
         %phase.hue%,"next+=_step_CS"
+        Set header=%header%
+        Set footer=%footer%
+        If "!$H!" == "2" (
+          Set "header=%\E%[H%\E%[48;2;!$R[2]!;!$G[2]!;!$B[2]!m%\E%[0J"
+          Set "footer="
+        )
       )
       If 1!now! gtr !$spaceBar!!nextb! (%= every at best _step_CSb =%
         Set /a "nextb+=_step_CSb","_step=_step %% !_StepMax! + 1"
@@ -137,9 +170,9 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
       REM for metavariables adhere to ascii value order ... ,.-/0123456789:; ...
       Set "t=!t:~0,1! !t:~1,1! !t:~2,1! !t:~3,1! !t:~4,1! !t:~5,1! !t:~6,1! !t:~7,1! RESERVED !_step!"
       For /f "tokens=1-10" %%1 in ("!t!")Do (
-        Echo(%\E%[48;2;!$R[2]!;!$G[2]!;!$B[2]!m%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m%\E%[2J%\E%[8;13H![%%1]:#=%%1!![%%2]:#=%%2!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m![%%3]:#=%%3!![%%4]:#=%%4!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m![%%5]:#=%%5!![%%6]:#=%%6!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m![%%7]:#=%%7!![%%8]:#=%%8!%\E%[5E%\E%[0m
+        Echo(%\E%[48;2;!$R[2]!;!$G[2]!;!$B[2]!m%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m!Header!%\E%[48;2;!$R[2]!;!$G[2]!;!$B[2]!m%\E%[0J%\E%[8;13H![%%1]:#=%%1!![%%2]:#=%%2!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m![%%3]:#=%%3!![%%4]:#=%%4!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m![%%5]:#=%%5!![%%6]:#=%%6!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m![%%7]:#=%%7!![%%8]:#=%%8!%\E%[5E!Footer!%\E%[0m
   ) ) )
-
+)
 EXIT
 
 ==========================================================================================================
@@ -149,9 +182,48 @@ REM no changes should be made to the below utilities
 
 REM VT sequence info: https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
   for /f "Delims=" %%e in ('Echo Prompt $E^|%comspec%') Do Set "\E=%%e"
-  <Nul Set /P "=%\E%[1;1H%\E%[2J%\E%[?25l%\E%[0;5m..."
+
   Setlocal DisableDelayedExpansion
   CD /d "%~dp0"
+
+REM Good practice when utilizing other shells / non-batch windows command execution
+REM notify user of this scripts supplementary supports and
+REM require positive affirmation before continuing.
+
+  2> nul 1> nul ( More < "%~f0:Consent:$Data" ) && (
+    goto:accepted
+  ) || (
+     Echo(%\E%[H%\E%[2J%\E%[0;33m
+     Echo(This script uses the following tools to augment Batch's capabilities.
+     Echo(%\E%[36m Powershell      %\E%[0m-%\E%[33m Set Font name and size
+     Echo(%\E%[0m                 -%\E%[33m Maintain constant console dimensions while running
+     Echo(%\E%[0m                   *%\E%[33m not used if run via windows terminal
+     Echo(%\E%[36m VbScript        %\E%[0m-%\E%[33m Play windows .wav files for soundFX
+     Echo(%\E%[36m NTFS ADS        %\E%[0m-%\E%[33m Save / Load user settings, Persist user options
+     Echo(%\E%[0m                   Remove ADS files using cmd commandline:
+     Echo(%\E%[38;5;150m powershell -c "remove-item -path '%~nx0' -Stream '*'"
+     Echo(%\E%[0;36m Temporary Files %\E%[0m-%\E%[33m Inter-process communication
+     Echo(%\E%[0m                   Remove temp files using cmd commandline: 
+     Echo(%\E%[38;5;150m call "%~f0" delTemp
+     Echo( 
+     Echo(%\E%[0m If accepted, this notice will not be displayed again.
+     Echo( %\E%7[%\E%[5m%\E%[32mA%\E%[0m]ccept [%\E%[5;31mE%\E%[0m]xit
+     For /f "delims=" %%K in ('%systemroot%\system32\choice.exe /n /c:AE') Do (
+       If /i "%%K" == "A" (
+         set userprofile >"%~f0:Consent:$Data"
+         CLS
+       ) else (
+         Echo(
+         <Nul Set /P "=%\E%8%\E%[K%\E%[0;5mExiting..."
+         1> nul Timeout /t 2 /NoBreak
+         <Nul Set /P "=%\E%[1G%\E%[0m%\E%[K"
+         exit /b 0
+       )
+     )
+  )
+
+:accepted
+  <Nul Set /P "=%\E%[1;1H%\E%[2J%\E%[?25l%\E%[0;5m..."
  
   2> nul 1> nul ( More < "%~f0:exports:$Data" ) && (
     For /f "UseBackQ Delims=" %%V in ("%~f0:exports:$Data")Do Set "%%V"
@@ -192,10 +264,11 @@ rem Validate exports. If exports failed or removed, and user rejects recovery, d
 
   if /i "%exports%" == "true" (set "sound_check=if 1==1 ") else set "sound_check=if 1==0 "
  
-  %sound_check% For /f "tokens=1,* Delims=:" %%N in ('%SystemRoot%\system32\findstr.exe /BRIC:":soundConfig:" "%~f0"') Do (
-    if exist "%systemDrive%\%%~O" (
-      Set "Sound=%systemDrive%\%%~O"
-  ) )
+  %sound_check% ( Set sound.i=0
+    For /f "tokens=1,2,3,* Delims=:" %%M in ('%SystemRoot%\system32\findstr.exe /BRIC:":soundConfig:" "%~f0"') Do (
+      if exist "%systemDrive%\%%~P" (
+        Set sound.%%~N=CALL "%~dp0playMusic" "%systemDrive%\%%~P" %%~O false
+  ) ) )
 
 
   REM Define essential vars for multithreaded controller
@@ -212,19 +285,21 @@ rem Validate exports. If exports failed or removed, and user rejects recovery, d
   (Title %id%)
 
 :GetSession
+
+  Break >"%~dp0cmd.Run" || Goto:GetSession
   cd /d "%~dp0"
 
   REM get session ID to prevent File Read / write error if multiple instances running
   For /F "Skip=2 tokens=2" %%G in ('Tasklist /fi "windowtitle eq %id%"')Do Set "Lock=%%G"
   CALL Set "SignalFile=%%SignalFile:__=_%Lock%_%%"
-  Del /f /q "%~n0_*.ps1" 2> nul 1> nul
+  Del /f /q "%~n0*.ps1" 2> nul 1> nul
 
   For /F "tokens=2 Delims=:" %%G in ('CHCP')Do >"%TEMP%\%~n0_%Lock%_restore.cmd" Echo(@CHCP %%G ^> nul
   Del "%SignalFile:Signal=Abort%" 2> nul
 
-  Break >"%~dp0cmd.Run" || Goto:GetSession
 :clonefile
-  Copy "%~f0" "%~dp0%id%.ps1" 1> nul 2> nul || if not exist "%~dp0%id%.ps1" goto:clonefile
+  Copy "%~f0" "%~dp0%id%.ps1" 1> nul 2> nul
+  if not exist "%~dp0%id%.ps1" goto:clonefile
 
   CHCP 65001 > nul
 
@@ -234,13 +309,15 @@ rem Validate exports. If exports failed or removed, and user rejects recovery, d
 
   Mode %$columns%,%$lines%
 
-  Start /Wait /B "" "%~F0" XCOPYCONTROLLER 1>"%SignalFile%" 2> nul | 1>"%SignalFile:signal=mtPS%" 2>"%SignalFile:signal=mtPS_debug%" powershell.exe -noprofile -ExecutionPolicy Bypass -file "%~dp0%id%.ps1" %$Lines% %$Columns% | "%~F0" %Script% <"%SignalFile%" 2> nul
+  If defined WT_SESSION Start /Wait /B "" "%~F0" XCOPYCONTROLLER 1>"%SignalFile%" 2> nul | "%~F0" %Script% <"%SignalFile%" 2> nul
+  If not defined WT_SESSION Start /Wait /B "" "%~F0" XCOPYCONTROLLER 1>"%SignalFile%" 2> nul | 1>"%SignalFile:signal=mtPS%" 2>"%SignalFile:signal=mtPS_debug%" powershell.exe -noprofile -ExecutionPolicy Bypass -file "%~dp0%id%.ps1" %$Lines% %$Columns% | "%~F0" %Script% <"%SignalFile%" 2> nul
+
 
   REM Processes have resolved; end script. cleanup this processes lock file.
   Del "%SignalFile%"
-  Del /f /q "%~dp0%id%.ps1" 2> nul 1> nul
+  Del /f /q "%~dp0%~n0*.ps1" 2> nul 1> nul
 
-  Endlocal & Goto:Eof
+Endlocal & Goto:Eof
 
 
 
@@ -323,6 +400,7 @@ Goto:Eof
 :Set_Font FontName FontSize max/nomax dummy
 rem set_font by Einst. modified for use with multiProcess dispatcher
 Set "m="
+for /f "delims=0123456789" %%V in ("%~2") do EXIT
 If /i "%~3" == "max" set "m=/max" 
 if "%4"=="" (
 	for /f "tokens=1,2 delims=x" %%a in ("%~2") do if "%%b"=="" (set /a "FontSize=%~2*65536") else set /a "FontSize=%%a+%%b*65536"
@@ -335,11 +413,69 @@ if "%4"=="" (
 ) else ( >nul reg delete "HKCU\Console\%~nx0" /f )
 goto:eof
 
+:setFont <integerSize> <stringFontName>
+REM setfont + init_setfont are from the StdLibrary created by IcarusLives
+REM https://github.com/IcarusLivesHF/Windows-Batch-Library/tree/8812670566744d2ee14a9a68a06be333a27488cc
+if "%~2" equ "" goto :eof
+call :init_setfont
+If not errorlevel 1 Set "SetFont.init=1"
+If defined SetFont.init %setFont% %~1 %~2
+goto :eof
+
+:init_setfont DON'T CALL
+:: - BRIEF -
+::  Get or set the console font size and font name.
+:: - SYNTAX -
+::  %setfont% [fontSize [fontName]]
+::    fontSize   Size of the font. (Can be 0 to preserve the size.)
+::    fontName   Name of the font. (Can be omitted to preserve the name.)
+:: - EXAMPLES -
+::  Output the current console font size and font name:
+::    %setfont%
+::  Set the console font size to 14 and the font name to Lucida Console:
+::    %setfont% 14 Lucida Console
+setlocal DisableDelayedExpansion
+set setfont=for /l %%# in (1 1 2) do if %%#==2 (^
+%=% for /f "tokens=1,2*" %%- in ("? ^^!arg^^!") do endlocal^&powershell.exe -nop -ep Bypass -c ^"Add-Type '^
+%===% using System;^
+%===% using System.Runtime.InteropServices;^
+%===% [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)] public struct FontInfo{^
+%=====% public int objSize;^
+%=====% public int nFont;^
+%=====% public short fontSizeX;^
+%=====% public short fontSizeY;^
+%=====% public int fontFamily;^
+%=====% public int fontWeight;^
+%=====% [MarshalAs(UnmanagedType.ByValTStr,SizeConst=32)] public string faceName;}^
+%===% public class WApi{^
+%=====% [DllImport(\"kernel32.dll\")] public static extern IntPtr CreateFile(string name,int acc,int share,IntPtr sec,int how,int flags,IntPtr tmplt);^
+%=====% [DllImport(\"kernel32.dll\")] public static extern void GetCurrentConsoleFontEx(IntPtr hOut,int maxWnd,ref FontInfo info);^
+%=====% [DllImport(\"kernel32.dll\")] public static extern void SetCurrentConsoleFontEx(IntPtr hOut,int maxWnd,ref FontInfo info);^
+%=====% [DllImport(\"kernel32.dll\")] public static extern void CloseHandle(IntPtr handle);}';^
+%=% $hOut=[WApi]::CreateFile('CONOUT$',-1073741824,2,[IntPtr]::Zero,3,0,[IntPtr]::Zero);^
+%=% $fInf=New-Object FontInfo;^
+%=% $fInf.objSize=84;^
+%=% [WApi]::GetCurrentConsoleFontEx($hOut,0,[ref]$fInf);^
+%=% If('%%~.'){^
+%===% $fInf.nFont=0; $fInf.fontSizeX=0; $fInf.fontFamily=0; $fInf.fontWeight=0;^
+%===% If([Int16]'%%~.' -gt 0){$fInf.fontSizeY=[Int16]'%%~.'}^
+%===% If('%%~/'){$fInf.faceName='%%~/'}^
+%===% [WApi]::SetCurrentConsoleFontEx($hOut,0,[ref]$fInf);}^
+%=% Else{(''+$fInf.fontSizeY+' '+$fInf.faceName)}^
+%=% [WApi]::CloseHandle($hOut);^") else setlocal EnableDelayedExpansion^&set arg=
+endlocal &set "setfont=%setfont%"
+if !!# neq # set "setfont=%setfont:^^!=!%"
+exit /b
+
 
 %= CONFIG AND DATA =%
 
-:soundConfig:"Windows\Media\Windows Ding.wav"
-:soundConfig:"Windows\WinSxS\amd64_userexperience-sxs_31bf3856ad364e35_10.0.26100.8737_none_41b2506c7299798e\61869836.InpApp\InputApp\Assets\KbdSwipeGesture.wav"
+REM :soundConfig:suffix:Volume:"path/to/filename.wav"
+REM returned as a macro expanded as %sound.suffix% that invokes playMusic.bat with args: "filepath" volume false
+REM where false is a flag for 'no loop' 
+:soundConfig:second:10:"Windows\WinSxS\amd64_userexperience-sxs_31bf3856ad364e35_10.0.26100.8737_none_41b2506c7299798e\61869836.InpApp\InputApp\Assets\KbdSwipeGesture.wav"
+:soundConfig:minute:90:"Windows\Media\Windows Balloon.wav"
+:soundConfig:hour:60:"Windows\Media\Windows Information Bar.wav"
 
 :exports: "stopMusic.bat" "playMusic.bat" "SessionMonitor.bat"
 
