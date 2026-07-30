@@ -3,7 +3,7 @@
 
 @Echo off
 REM Author: T3RRY : 19/05/2024
-REM        updated: 13/07/2026
+REM        updated: 30/07/2026
 REM this Script demonstrates various advanced batch techniques by way of
 REM a feature rich animated clock, with peristent user configuration.
 
