@@ -1,3 +1,8 @@
+
+<p align="center">
+  <img src="img/clock.png">
+</p>
+
 Beyond being an animated clock, this script demonstrates a broad set of **systems design patterns, architectural techniques, and advanced command interpreter practices**:
 
 * **Modular architecture within a non-modular language**
