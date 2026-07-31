@@ -3,7 +3,7 @@
 
 @Echo off
 REM Author: T3RRY : 19/05/2024
-REM        updated: 30/07/2026
+REM        updated: 31/07/2026
 REM this Script demonstrates various advanced batch techniques by way of
 REM a feature rich animated clock, with peristent user configuration.
 
@@ -67,6 +67,7 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
   %= control flow + variable assignments        =% Set "stateKEYS= D spaceBar M H "
   %= prevent action on Substitution Poison Key  =% For %%K in (!colorKeys!!adjustKeys!!stateKeys!) do set "Key%%K=1" 
   rem SPK is: '='
+  for %%E in (!stateKEYS!) do Set /a "lock_Action_%%E_until=0","%%E.CStimeout=0","M.CStimeout=25"
  
   Set "$D[1]=38"
   Set "$D[2]=48"
@@ -108,7 +109,12 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
     Set "hour=%%a"
   )
 
+  Set "track.state[1]=%sound.background: loop= 1%"
+  Set ^"track.state[2]=start /b "" "%~dp0stopMusic.bat" running^"
+
 (
+
+  %sound_check% %sound.background: loop= 1%
   rem prepare header respecting past state
   Set header=%header%
   Set footer=%footer%
@@ -125,7 +131,15 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
       For /f "tokens=1,2,3 Delims=`" %%C in ("!$C!`!$D!`!nKey: =spaceBar!`")Do If defined key%%E (
         If not "!colorKEYS: %%E =!" == "!colorKEYS!"   Set "$C=%%E" & Set /a "$[]R=0,$[]G=0,$[]B=0,$[]%%E=1"
         If not "!adjustKEYS: %%E =!" == "!adjustKEYS!" Set /A "$%%C[%%D]%%E=1","%CLAMP255%"
-        If not "!stateKEYS: %%E =!" == "!stateKEYS!"   Set /A "$%%E=$%%E %% 2 + 1"
+        If not "!stateKEYS: %%E =!" == "!stateKEYS!" (
+          If !Now! GTR !lock_Action_%%E_until! (
+            Set /A "$%%E=$%%E %% 2 + 1"
+            If /i "%%E" == "M" (
+              For /f "delims=" %%i in ("!$M!") do !track.state[%%i]!
+            )
+            Set /a "lock_Action_%%E_until=now+%%E.CStimeout"
+          )
+        )
       )
       If /I "!nKey:~-4!" == "quit" (
         %= save config state on exit =% Set $ >"%~f0:Config:$data"
@@ -134,17 +148,18 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
     )
     %= parse time =%
     for /f "tokens=1-4 delims=:.," %%a in ("!time: =0!")Do (
-      %sound_check% if !$m! leq 1 ( 
+
+      %sound_check% ( 
         If not "%%c" == "!second!" If "%%b" == "!minute!" (
-          %sound.second%
+          %sound.second: loop= 0%
           set "second=%%c"
         )
         If not "%%b" == "!minute!" If "%%a" == "!hour!" (
-          %sound.minute%
+          %sound.minute: loop= 0%
           set "minute=%%b"
         )
         If not "%%a" == "!hour!" (
-          %sound.hour%
+          %sound.hour: loop= 0%
           set "hour=%%a"
         )
       )
@@ -169,8 +184,9 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
       %= RESERVED token allows semicolon to be used to reference HH MM SS CS seperator =%
       REM for metavariables adhere to ascii value order ... ,.-/0123456789:; ...
       Set "t=!t:~0,1! !t:~1,1! !t:~2,1! !t:~3,1! !t:~4,1! !t:~5,1! !t:~6,1! !t:~7,1! RESERVED !_step!"
+
       For /f "tokens=1-10" %%1 in ("!t!")Do (
-        Echo(%\E%[48;2;!$R[2]!;!$G[2]!;!$B[2]!m%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m!Header!%\E%[48;2;!$R[2]!;!$G[2]!;!$B[2]!m%\E%[0J%\E%[8;13H![%%1]:#=%%1!![%%2]:#=%%2!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m![%%3]:#=%%3!![%%4]:#=%%4!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m![%%5]:#=%%5!![%%6]:#=%%6!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m![%%7]:#=%%7!![%%8]:#=%%8!%\E%[5E!Footer!%\E%[0m
+        Echo(%\E%[H%\E%[48;2;!$R[2]!;!$G[2]!;!$B[2]!m%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m!Header!%\E%[48;2;!$R[2]!;!$G[2]!;!$B[2]!m%\E%[0J%\E%[8;13H![%%1]:#=%%1!![%%2]:#=%%2!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m![%%3]:#=%%3!![%%4]:#=%%4!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m![%%5]:#=%%5!![%%6]:#=%%6!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m![%%7]:#=%%7!![%%8]:#=%%8!%\E%[5E!Footer!%\E%[0m
   ) ) )
 )
 EXIT
@@ -199,7 +215,8 @@ REM require positive affirmation before continuing.
      Echo(%\E%[0m                 -%\E%[33m Maintain constant console dimensions while running
      Echo(%\E%[0m                   *%\E%[33m not used if run via windows terminal
      Echo(%\E%[36m VbScript        %\E%[0m-%\E%[33m Play windows .wav files for soundFX
-     Echo(%\E%[36m NTFS ADS        %\E%[0m-%\E%[33m Save / Load user settings, Persist user options
+     Echo(%\E%[36m Curl            %\E%[0m-%\E%[33m Download music file/s if approved
+     Echo(%\E%[36m NTFS ADS        %\E%[0m-%\E%[33m Save and load user settings
      Echo(%\E%[0m                   Remove ADS files using cmd commandline:
      Echo(%\E%[38;5;150m powershell -c "remove-item -path '%~nx0' -Stream '*'"
      Echo(%\E%[0;36m Temporary Files %\E%[0m-%\E%[33m Inter-process communication
@@ -262,15 +279,10 @@ rem Validate exports. If exports failed or removed, and user rejects recovery, d
     )
   )
 
-  if /i "%exports%" == "true" (set "sound_check=if 1==1 ") else set "sound_check=if 1==0 "
+REM DDE environment active
+  Set "$M=1" %= this var has a managed state during setup and cleanup =%
+  if /i "%exports%" == "true" (set "sound_check=if 1==!$M! ") else set "sound_check=if 1==0 "
  
-  %sound_check% ( Set sound.i=0
-    For /f "tokens=1,2,3,* Delims=:" %%M in ('%SystemRoot%\system32\findstr.exe /BRIC:":soundConfig:" "%~f0"') Do (
-      if exist "%systemDrive%\%%~P" (
-        Set sound.%%~N=CALL "%~dp0playMusic" "%systemDrive%\%%~P" %%~O false
-  ) ) )
-
-
   REM Define essential vars for multithreaded controller
   REM Signal file that the Controller uses to pass keypress to the game via without blocking execution.
   REM - Note - This is modified later to a Lockfile in format: %TEMP%\%~n0_%PID%_Signal.cmd
@@ -302,8 +314,34 @@ rem Validate exports. If exports failed or removed, and user rejects recovery, d
   if not exist "%~dp0%id%.ps1" goto:clonefile
 
   CHCP 65001 > nul
-
+  
+  Setlocal EnableDelayedExpansion
   %sound_check% Call "%~dp0SessionMonitor.bat" start
+
+
+  REM initialize sound macros to invoke WMPlayer via VBS with specified settings
+  REM download missing assets if user consents
+  REM CONVENTION - never assume consent to download assets.
+  %sound_check% ( Set sound.i=0
+    For /f "tokens=1,2,3,* Delims=:" %%M in ('%SystemRoot%\system32\findstr.exe /BRIC:":Sound:" "%~f0"') Do (
+      if not exist "%%~P" (
+        Echo(
+        Echo(Asset missing: "%%~P"
+        "%SystemRoot%\system32\findstr.exe" /BLIC:":download:%%~P" "%~f0"
+        Echo(
+        Echo(Download from specified source Y/N?
+        For /f "delims=" %%K in ('%SystemRoot%\system32\choice.exe /n /c:YN') Do if "%%K" == "Y" (CLS
+          For /f "tokens=1,* Delims==" %%G in ('%SystemRoot%\system32\findstr.exe /BLIC:":download:%%~P" "%~f0"') Do (
+            curl --output "%%~fP" --fail --silent --remove-on-error "%%~H"
+          )
+        )
+      )
+      if exist "%%~P" (
+        REM                                  path  vol  0/1
+        Set %%~M.%%~N=CALL "%~dp0playMusic" "%%~P" %%~O loop
+        Set "%%~M.%%~N=!%%~M.%%~N:.\=%~dp0!"
+      )
+  ) )
 
   Set /a $lines=19,$columns=70
 
@@ -311,7 +349,7 @@ rem Validate exports. If exports failed or removed, and user rejects recovery, d
 
   If defined WT_SESSION Start /Wait /B "" "%~F0" XCOPYCONTROLLER 1>"%SignalFile%" 2> nul | "%~F0" %Script% <"%SignalFile%" 2> nul
   If not defined WT_SESSION Start /Wait /B "" "%~F0" XCOPYCONTROLLER 1>"%SignalFile%" 2> nul | 1>"%SignalFile:signal=mtPS%" 2>"%SignalFile:signal=mtPS_debug%" powershell.exe -noprofile -ExecutionPolicy Bypass -file "%~dp0%id%.ps1" %$Lines% %$Columns% | "%~F0" %Script% <"%SignalFile%" 2> nul
-
+  Endlocal
 
   REM Processes have resolved; end script. cleanup this processes lock file.
   Del "%SignalFile%"
@@ -354,7 +392,7 @@ Endlocal & Goto:Eof
 			)
 			Endlocal
 		)
-	)
+	) 2> nul
 
 %= CALLED FUNCTIONS =%
 
@@ -382,11 +420,12 @@ exit /b
 	If Defined XcopyError Echo(!XcopyError!
 	CALL "%TEMP%\%~n0_%Lock%_restore.cmd"
         Del "%~dp0cmd.run"
-        %sound_check% Call "%~dp0stopMusic.bat"
 	Del "%TEMP%\%~n0_%lock%*.cmd"
+	Del "%~dp0play_*.vbs"
         <Nul Set /P "=%\E%[1;1H%\E%[2J%\E%[0m" 1> con
         (title )
 )
+1> nul 2> nul Call "%~dp0stopMusic.bat"
 EXIT
 
 :delTemp
@@ -468,26 +507,32 @@ if !!# neq # set "setfont=%setfont:^^!=!%"
 exit /b
 
 
-%= CONFIG AND DATA =%
+REM SOUND CONFIG // DATA // UTILITIES
 
-REM :soundConfig:suffix:Volume:"path/to/filename.wav"
+REM :sound:Suffix:Volume:"Path/to/filename.wav"
 REM returned as a macro expanded as %sound.suffix% that invokes playMusic.bat with args: "filepath" volume false
 REM where false is a flag for 'no loop' 
-:soundConfig:second:10:"Windows\WinSxS\amd64_userexperience-sxs_31bf3856ad364e35_10.0.26100.8737_none_41b2506c7299798e\61869836.InpApp\InputApp\Assets\KbdSwipeGesture.wav"
-:soundConfig:minute:90:"Windows\Media\Windows Balloon.wav"
-:soundConfig:hour:60:"Windows\Media\Windows Information Bar.wav"
+REM Paths may not contain unescaped '!' characters to allow the use of delayed variables in specified paths.
+
+:sound:second:15:"!Windir!\WinSxS\amd64_userexperience-sxs_31bf3856ad364e35_10.0.26100.8737_none_41b2506c7299798e\61869836.InpApp\InputApp\Assets\KbdSwipeGesture.wav"
+:sound:minute:90:"!Windir!\Media\Windows Balloon.wav"
+:sound:hour:60:"!Windir!\Media\Windows Information Bar.wav"
+
+:sound:background:15:".\orbital_atmosphere.wav"
+:download:.\orbital_atmosphere.wav=https://drive.usercontent.google.com/download?id=1p96uGVcUOwU6OqlbQmwtss7d3IMQcDY7&export=download&confirm=t
+:attribution:Orbital Atmosphere by qmtn -- https://freesound.org/s/862226/ -- License: Attribution 4.0
 
 :exports: "stopMusic.bat" "playMusic.bat" "SessionMonitor.bat"
 
 :export:stopMusic.bat: @echo off
-:export:stopMusic.bat: PUSHD "%~dp0"
-:export:stopMusic.bat: (For /F "Delims=" %%G in ('Dir *.vbs /B')Do If /I not "%%~nxG" == "monitor.vbs" (Del %%G)) 2> nul
+:export:stopMusic.bat: 1>&2 nul PUSHD "%~dp0"
+:export:stopMusic.bat: (For /F "Delims=" %%G in ('Dir *.vbs /B 2^>nul')Do If /I not "%%~nxG" == "monitor.vbs" (Del %%G)) 2> nul
 :export:stopMusic.bat: taskkill /pid WScript.exe /f /t >nul 2>nul
 :export:stopMusic.bat: If /I not "%~1" == "running" (
-:export:stopMusic.bat:   (For /F "Delims=" %%G in ('Dir *.vbs /B /S')Do (Del %%G)) 2> nul
-:export:stopMusic.bat: )Else (For /F "Delims=" %%G in ('Dir %~dp0Play_*.vbs /B /S')Do (Del %%G)) 2> nul
-:export:stopMusic.bat: POPD
-:export:stopMusic.bat: exit /b 0
+:export:stopMusic.bat:   (For /F "Delims=" %%G in ('Dir *.vbs /B /S 2^>nul')Do ( Del %%G  1> nul 2> nul ))
+:export:stopMusic.bat: )Else (For /F "Delims=" %%G in ('Dir %~dp0Play_*.vbs /B /S 2^>nul')Do ( Del %%G 1> nul 2> nul ))
+:export:stopMusic.bat: 1>&2 nul POPD
+:export:stopMusic.bat: EXIT
 
 :export:playMusic.bat: @echo off
 :export:playMusic.bat: If "%~1" == "" (
