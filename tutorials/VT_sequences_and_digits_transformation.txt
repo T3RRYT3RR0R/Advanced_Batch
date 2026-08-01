@@ -9,10 +9,12 @@ VT escape character 0x1b is defined in :Setup using
 
 REM data structures for displaying characters '1'~'9' and ':', with # replaced with literal value for 1~9
   %= move cursor to next X   =% Set ".=%\E%8%\E%[B%\E%7"
+  %= move cursor to next Y   =% Set "+=%\E%[4A "
 
-  %\E%8   - restore cursor position from memory
-  %\E%[nB - move cursor n rows down in current column. Default is 1 if n absent
-  %\E%8   - save cursor position to memory
+  '%\E%8'    - restore cursor position from memory
+  '%\E%[nB'  - move cursor n rows down in current column. Default is 1 if n absent
+  '%\E%8'    - save cursor position to memory
+  '%\E%[4A ' - move cursor 4 rows up and emit whitespace
   
   NOTE: cursor cannot be moved outside window buffer using VT sequences
 
