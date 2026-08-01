@@ -3,14 +3,16 @@
 
 @Echo off
 REM Author: T3RRY : 19/05/2024
-REM        updated: 01/08/2026
+REM        updated: 31/07/2026
 REM this Script demonstrates various advanced batch techniques by way of
 REM a feature rich animated clock, with peristent user configuration.
 
   if defined WT_Session (
     If /i not "%~1" == "Main" If /i not "%~1" == "XCOPYcontroller" (
       %= preserve font and mode resize capability if run from WindowsTerminal =%
-      If /i not "%~1" == "delTemp" call :Set_Font "lucida console" 18 nomax %~1 || EXIT
+      If /i not "%~1" == "delTemp" If /i not "%~1" == "Manage-ADS" (
+        call :Set_Font "lucida console" 18 nomax %~1 || EXIT
+      )
     )
   ) else (
     %= Default font resize method =%
@@ -38,6 +40,20 @@ REM data structures for displaying characters '1'~'9' and ':', with # replaced w
   Set "[5]=%\E%7###%.%#  %.%###%.%  #%.%###%+%" & Set "[4]=%\E%7# #%.%# #%.%###%.%  #%.%  #%+%"
   Set "[3]=%\E%7###%.%  #%.%###%.%  #%.%###%+%" & Set "[2]=%\E%7###%.%  #%.%###%.%#  %.%###%+%"
   Set "[1]=%\E%7 # %.% # %.% # %.% # %.% # %+%" & Set "[0]=%\E%7###%.%# #%.%# #%.%# #%.%###%+%"
+
+REM/||( %= visual representation of the above =%
+  Set "[9]=%\E%7###%.%" & Set "[8]=%\E%7###%.%" & Set "[7]=%\E%7###%.%" & Set "[6]=%\E%7###%.%" & Set "[5]=%\E%7###%.%"
+  Set "[9]=![9]!# #%.%" & Set "[8]=![8]!# #%.%" & Set "[7]=![7]!  #%.%" & Set "[6]=![6]!#  %.%" & Set "[5]=![5]!#  %.%"
+  Set "[9]=![9]!###%.%" & Set "[8]=![8]!###%.%" & Set "[7]=![7]!  #%.%" & Set "[6]=![6]!###%.%" & Set "[5]=![5]!###%.%"
+  Set "[9]=![9]!  #%.%" & Set "[8]=![8]!# #%.%" & Set "[7]=![7]!  #%.%" & Set "[6]=![6]!# #%.%" & Set "[5]=![5]!  #%.%"
+  Set "[9]=![9]!  #%+%" & Set "[8]=![8]!###%+%" & Set "[7]=![7]!  #%+%" & Set "[6]=![6]!###%+%" & Set "[5]=![5]!###%+%"
+
+  Set "[4]=%\E%7# #%.%" & Set "[3]=%\E%7###%.%" & Set "[2]=%\E%7###%.%" & Set "[1]=%\E%7 # %.%" & Set "[0]=%\E%7###%.%"
+  Set "[4]=![4]!# #%.%" & Set "[3]=![3]!  #%.%" & Set "[2]=![2]!  #%.%" & Set "[1]=![1]! # %.%" & Set "[0]=![0]!# #%.%"
+  Set "[4]=![4]!###%.%" & Set "[3]=![3]!###%.%" & Set "[2]=![2]!###%.%" & Set "[1]=![1]! # %.%" & Set "[0]=![0]!# #%.%"
+  Set "[4]=![4]!  #%.%" & Set "[3]=![3]!  #%.%" & Set "[2]=![2]!#  %.%" & Set "[1]=![1]! # %.%" & Set "[0]=![0]!# #%.%"
+  Set "[4]=![4]!  #%+%" & Set "[3]=![3]!###%+%" & Set "[2]=![2]!###%+%" & Set "[1]=![1]! # %+%" & Set "[0]=![0]!###%+%"
+)
 
   %= HH MM SS CS seperator animation array and config =%
   Set "_1=%\E%7   %.% ♥ %.%   %.% ♥ %.%   %+%"
