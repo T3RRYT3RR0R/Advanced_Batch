@@ -1,0 +1,77 @@
+Digits Transformation data and VT sequence breakdown
+Resources: https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
+
+VT escape character 0x1b is defined in :Setup using
+  for /f "Delims=" %%e in ('Echo Prompt $E^|%comspec%') Do Set "\E=%%e"
+  %comspec% is a system variable initiated as the fully qualified filepath for cmd.exe
+  Prompt $E sets the prompt to 0x1B
+  This command is piped to cmd.exe and the command output is captured using the for loop.
+
+REM data structures for displaying characters '1'~'9' and ':', with # replaced with literal value for 1~9
+  %= move cursor to next X   =% Set ".=%\E%8%\E%[B%\E%7"
+
+  %\E%8   - restore cursor position from memory
+  %\E%[nB - move cursor n rows down in current column. Default is 1 if n absent
+  %\E%8   - save cursor position to memory
+  
+  NOTE: cursor cannot be moved outside window buffer using VT sequences
+
+Positional VT sequences:
+         %\E%[A
+           ▲
+
+%\E%[D  ◄     ► %\E%[C
+           
+           ▼
+         %\E%[B
+
+  %\E%[H = 1;1 ScreenHome
+  %\E%[y;xH = Cursor to Row Y column X
+  %\E%[nd = move Cursor to    Row n - Defaults to 1 if n absent
+  %\E%[nG = move Cursor to Column n - Defaults to 1 if n absent
+  %\E%[nE = emit n newlines         - Defaults to 1 if n absent
+
+  %= move cursor to next Y   =% Set "+=%\E%[4A "
+
+  Set "[9]=%\E%7###%.%# #%.%###%.%  #%.%  #%+%" & Set "[8]=%\E%7###%.%# #%.%###%.%# #%.%###%+%"
+  Set "[7]=%\E%7###%.%  #%.%  #%.%  #%.%  #%+%" & Set "[6]=%\E%7#  %.%#  %.%###%.%# #%.%###%+%"
+  Set "[5]=%\E%7###%.%#  %.%###%.%  #%.%###%+%" & Set "[4]=%\E%7# #%.%# #%.%###%.%  #%.%  #%+%"
+  Set "[3]=%\E%7###%.%  #%.%###%.%  #%.%###%+%" & Set "[2]=%\E%7###%.%  #%.%###%.%#  %.%###%+%"
+  Set "[1]=%\E%7 # %.% # %.% # %.% # %.% # %+%" & Set "[0]=%\E%7###%.%# #%.%# #%.%# #%.%###%+%"
+
+visual representation of the above:
+
+  Set "[9]=%\E%7###%.%" & Set "[8]=%\E%7###%.%" & Set "[7]=%\E%7###%.%" & Set "[6]=%\E%7###%.%" & Set "[5]=%\E%7###%.%"
+  Set "[9]=![9]!# #%.%" & Set "[8]=![8]!# #%.%" & Set "[7]=![7]!  #%.%" & Set "[6]=![6]!#  %.%" & Set "[5]=![5]!#  %.%"
+  Set "[9]=![9]!###%.%" & Set "[8]=![8]!###%.%" & Set "[7]=![7]!  #%.%" & Set "[6]=![6]!###%.%" & Set "[5]=![5]!###%.%"
+  Set "[9]=![9]!  #%.%" & Set "[8]=![8]!# #%.%" & Set "[7]=![7]!  #%.%" & Set "[6]=![6]!# #%.%" & Set "[5]=![5]!  #%.%"
+  Set "[9]=![9]!  #%+%" & Set "[8]=![8]!###%+%" & Set "[7]=![7]!  #%+%" & Set "[6]=![6]!###%+%" & Set "[5]=![5]!###%+%"
+
+  Set "[4]=%\E%7# #%.%" & Set "[3]=%\E%7###%.%" & Set "[2]=%\E%7###%.%" & Set "[1]=%\E%7 # %.%" & Set "[0]=%\E%7###%.%"
+  Set "[4]=![4]!# #%.%" & Set "[3]=![3]!  #%.%" & Set "[2]=![2]!  #%.%" & Set "[1]=![1]! # %.%" & Set "[0]=![0]!# #%.%"
+  Set "[4]=![4]!###%.%" & Set "[3]=![3]!###%.%" & Set "[2]=![2]!###%.%" & Set "[1]=![1]! # %.%" & Set "[0]=![0]!# #%.%"
+  Set "[4]=![4]!  #%.%" & Set "[3]=![3]!  #%.%" & Set "[2]=![2]!#  %.%" & Set "[1]=![1]! # %.%" & Set "[0]=![0]!# #%.%"
+  Set "[4]=![4]!  #%+%" & Set "[3]=![3]!###%+%" & Set "[2]=![2]!###%+%" & Set "[1]=![1]! # %+%" & Set "[0]=![0]!###%+%"
+
+
+  %= HH MM SS CS delimiter animation array and config =%
+  Set "_1=%\E%7   %.% ♥ %.%   %.% ♥ %.%   %+%"
+  Set "_2=%\E%7   %.% ♦ %.%   %.% ♦ %.%   %+%"
+  Set "_3=%\E%7   %.% ♣ %.%   %.% ♣ %.%   %+%"
+  Set "_4=%\E%7   %.% ♠ %.%   %.% ♠ %.%   %+%"
+
+The following is a parsing of the time variables content after delimiters have been stripped.
+this is subsequently tokenised by For, with clock digits occupying tokens 1-8. The use of %%1
+as the initial reference metavariable allows each number to correspond to the digits position,
+with string substitutions search=replace used to transform each digits # to the current number.
+
+A dummy token is used to consume token 9, in order to allow the use of the for metavariable %%:
+to expand the delimiter of HH : MM : SS : CS from the _Int pseudo array
+  - For metavariable order is aligned with printable Ascii characters 33~126
+  RESOURCE: https://www.ascii-code.com/
+ 
+  Set "t=!t:~0,1! !t:~1,1! !t:~2,1! !t:~3,1! !t:~4,1! !t:~5,1! !t:~6,1! !t:~7,1! RESERVED !_step!"
+
+  For /f "tokens=1-10" %%1 in ("!t!")Do (
+        Echo(%\E%[H%\E%[48;2;!$R[2]!;!$G[2]!;!$B[2]!m%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m!Header!%\E%[48;2;!$R[2]!;!$G[2]!;!$B[2]!m%\E%[0J%\E%[8;13H![%%1]:#=%%1!![%%2]:#=%%2!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m![%%3]:#=%%3!![%%4]:#=%%4!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m![%%5]:#=%%5!![%%6]:#=%%6!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m![%%7]:#=%%7!![%%8]:#=%%8!%\E%[5E!Footer!%\E%[0m
+  )
