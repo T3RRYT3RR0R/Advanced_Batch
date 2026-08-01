@@ -1,0 +1,48 @@
+Thread and Function Dispatcher
+
+  WT_SESSION is defined when Windows Terminal is the parent process.
+   - Windows terminal does not support resizing.
+     Preference Set_Font or SetFont accordingly.
+   - SetFont will relaunch with cmd.exe and ensure Resizing capability,
+     but will also spawn a new window. Set_Font avoids this where appropriate.
+   - SetFont requires special handling to prevent Infinite loop
+     Call must be rejected for each valid Dispatch matching argV[1]
+
+  if defined WT_Session (
+    If /i not "%~1" == "Main" If /i not "%~1" == "XCOPYcontroller" (
+      %= preserve font and mode resize capability if run from WindowsTerminal =%
+      If /i not "%~1" == "delTemp" If /i not "%~1" == "Manage-ADS" (
+        call :Set_Font "lucida console" 18 nomax %~1 || EXIT
+      )
+    )
+  ) else (
+    %= Default font resize method =%
+    if not defined WT_Session call :SetFont 18 "lucida console"
+  )
+
+  set title none:
+  (Title )
+
+  execute target threads:
+  %Script% is a target of the start /b command used to relaunch process in pipeline with IPC
+  that occurs after :Setup completed
+  Set "Script=Main"
+
+  If argV[1] true if '_' Set_Font flag false, goto:argV[1]
+  If not "%~1"=="" If not "%~1"=="_" Goto:%1
+
+  defined once after setfont handled:
+  Set "thisFile=%~nx0"
+
+  Skip to Setup 
+  Goto:Setup
+
+CONVENTIONS: 
+:Main as first label after dispatcher, near top of script.
+  - less to scroll through when maintaining Main
+
+Hard exit on script end when invoking a process via start /b
+EXIT
+  - ensures process created by start /b is closed and control is returned to the caller
+
+:functions and embedded data after MAIN
