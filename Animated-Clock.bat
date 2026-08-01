@@ -217,11 +217,11 @@ REM require positive affirmation before continuing.
      Echo(%\E%[36m VbScript        %\E%[0m-%\E%[33m Play windows .wav files for soundFX
      Echo(%\E%[36m Curl            %\E%[0m-%\E%[33m Download music file/s if approved
      Echo(%\E%[36m NTFS ADS        %\E%[0m-%\E%[33m Save and load user settings
-     Echo(%\E%[0m                   Remove ADS files using cmd commandline:
-     Echo(%\E%[38;5;150m powershell -c "remove-item -path '%~nx0' -Stream '*'"
+     Echo(%\E%[0m                   Manage ADS files by invoking with arg:
+     Echo(%\E%[38;5;150m %~nx0 Manage-Ads
      Echo(%\E%[0;36m Temporary Files %\E%[0m-%\E%[33m Inter-process communication
-     Echo(%\E%[0m                   Remove temp files using cmd commandline: 
-     Echo(%\E%[38;5;150m call "%~f0" delTemp
+     Echo(%\E%[0m                   Remove temp files by invoking with arg: 
+     Echo(%\E%[38;5;150m %~nx0 delTemp
      Echo( 
      Echo(%\E%[0m If accepted, this notice will not be displayed again.
      Echo( %\E%7[%\E%[5m%\E%[32mA%\E%[0m]ccept [%\E%[5;31mE%\E%[0m]xit
@@ -325,17 +325,21 @@ REM DDE environment active
   %sound_check% ( Set sound.i=0
     For /f "tokens=1,2,3,* Delims=:" %%M in ('%SystemRoot%\system32\findstr.exe /BRIC:":Sound:" "%~f0"') Do (
       if not exist "%%~P" (
-        Echo(
-        Echo(Asset missing: "%%~P"
-        "%SystemRoot%\system32\findstr.exe" /BLIC:":download:%%~P" "%~f0"
-        Echo(
-        Echo(Download from specified source Y/N?
-        For /f "delims=" %%K in ('%SystemRoot%\system32\choice.exe /n /c:YN') Do if "%%K" == "Y" (CLS
-          For /f "tokens=1,* Delims==" %%G in ('%SystemRoot%\system32\findstr.exe /BLIC:":download:%%~P" "%~f0"') Do (
-            curl --output "%%~fP" --fail --silent --remove-on-error "%%~H"
-          )
-        )
-      )
+        2> nul 1> nul ( More < "%~f0:asset_%%~nP:$Data" ) || (
+          Echo(
+          Echo(Asset missing: "%%~nxP"
+          "%SystemRoot%\system32\findstr.exe" /BLIC:":download:%%~P" "%~f0"
+          Echo(
+          Echo(Download from specified source Y/N?
+          For /f "delims=" %%K in ('%SystemRoot%\system32\choice.exe /n /c:YN') Do (
+            if "%%K" == "Y" (CLS
+              For /f "tokens=1,* Delims==" %%G in ('%SystemRoot%\system32\findstr.exe /BLIC:":download:%%~P" "%~f0"') Do (
+                curl --output "%%~fP" --fail --silent --remove-on-error "%%~H"
+              )
+            )
+            If "%%K" == "N" (
+              (Echo User Declined) >"%~f0:asset_%%~nP:$Data"
+      ) ) ) )
       if exist "%%~P" (
         REM                                  path  vol  0/1
         Set %%~M.%%~N=CALL "%~dp0playMusic" "%%~P" %%~O loop
@@ -427,6 +431,249 @@ exit /b
 )
 1> nul 2> nul Call "%~dp0stopMusic.bat"
 EXIT
+
+:Manage-ADS
+  CLS
+  Echo(Streams of "%~f0"
+  Echo(
+  CD /D "%~dp0"
+  Set streams="Exit"
+  For /f "tokens=1,2,3 Delims=:" %%G in ('Dir /R "%~f0"') Do if /i "%%~I" == "$Data" (
+    Set stream="%%~H"
+    Echo( %%~H
+    Setlocal EnableDelayedExpansion
+    For /f  "delims=" %%G in ("!Streams! !Stream!") Do Endlocal & Set ^"streams=%%G^"
+  )
+  ENDLOCAL & Set ^"Streams=%streams%^"
+  if not defined menu Call:Init_menu
+  Setlocal EnableDelayedExpansion
+  Echo(
+  %Menu:Header=Choose a Task:% "Delete a Stream" "View Stream Content" Exit
+  ( Echo(
+    %Menu:Header=!Menu{String}!% !Streams!
+    Call :ADStask.%menu{number}% !Menu{String}!
+  )
+  Endlocal
+Goto:Manage-ADS
+
+:ADStask.1 Delete Stream
+  If "%~1" == "" Exit /b 0
+  1> nul 2> nul more <"%~f0:%~nx1:$Data" || Exit /b 1
+  SETLOCAL DISABLEDELAYEDEXPANSION
+  If not defined powershell For /f "delims=" %%G in ('%systemroot%\system32\where.exe PowerShell.exe')Do if /i not "%%~dpG" == "%userprofile%\" if not defined powershell Set powershell="%%~G"
+  %powershell% -c "remove-item -confirm -path '%~f0' -Stream '%~1'
+  ENDLOCAL
+Exit /b 0
+
+:ADStask.2 Show Stream Content
+CLS
+ if "%~1" == "" Exit /b 0
+ 2> nul More <"%~f0:%~1:$Data"
+pause
+Exit /b 0
+
+:init_menu
+======================================================================================
+  REM Modular menu macro by T3RRYT3RR0R
+
+  REM Version Update 31/05/2026
+    REM added script argument --alpha
+    REM --alpha overides the default option order to start alphabetically.
+    REM modified macro definition to allow silent testing from command line.
+    REM Command line macro use requires a cmd session with active CMD /V:On 
+
+  REM Version Update 21/01/2024
+    REM Variable Structure reworked to minimize variable reservations required by
+    REM constraining all internal variables to a single  prefix: menu*
+    REM Macro help and usage now embeded in the Macro.
+    REM Expanding the macro without arguments will now display the help output.
+    REM return variables are now named:
+    REM           Menu{String}
+    REM           Menu{Key}
+    REM           Menu{Number}
+
+  ================================================ REM = Menu macro Definition BEGIN
+  REM IMPORTANT - Defines the following Variables:  \n Console_Width Menu*
+    REM         Reserved Variable Prefix:      Menu
+    REM          - Do not define other variables with the leading name 'Menu' in your
+    REM         script to prevent any possibility of variable contamination.
+                REM   - Companion macro %menu.unload%
+                REM     Undefines all menu prefixed macros to free environment space.
+
+  REM Recommended Learning resources:
+  REM Dostips links likely fail as site is no longer regularly maintained.
+    REM https://www.dostips.com/forum/viewtopic.php?t=9265#p60294
+    REM https://www.dostips.com/forum/viewtopic.php?f=3&t=10983&sid=f6937e02068d93bc5a97ef63d4e5319e
+    REM Macros with arguments learning resources:
+    REM https://www.dostips.com/forum/viewtopic.php?f=3&t=1827
+    REM  -or- https://archive.is/HZKth
+
+(Set \n=^^^
+
+%= Newline var \n for multi-line macro definition - Do not modify This codeblock. =%)
+
+REM - To disable menu dividing line, define the variable: menu__Disable__Div
+  If defined menu__Disable__Div Goto :NoDividingLine
+
+  REM Enable DE environment to perform variable concatenation within a for loop
+    Setlocal EnableDelayedExpansion
+
+  REM Get console width for dividing line NOTE: not locale independant
+  For /f "usebackq tokens=2* delims=: " %%W in (`mode con ^| %__APPDIR__%findstr.exe /LIC:"Columns"`) do Set /A Console_Width=%%W
+    Set "Menu_Div=" & For /L %%i in (1 1 %Console_Width%)Do Set "Menu_Div=!Menu_Div!-"
+    Endlocal & Set "Menu_Div=%Menu_Div%"
+
+FOR /F %%! IN ("! ^! ^^^!") DO ^
+Set strLen=^
+for /f "tokens=2" %%? in ("%%!%%! D E") do for %%. in (1 2) do If %%.==2 (^
+%=   =% for /f "tokens=1,2 delims= " %%1 in ("%%!$args%%! $len") do If not "%%~2" == "" (^
+%=                        =% If defined %%~1 (^
+%=                                     =% (^
+%=                                        =% If "" neq "%%!%%1:~255%%!" (^
+%=                                                =% If "" neq "%%!%%~1:~4095%%!" (Set "$=%%!%%~1:~4096%%!") else Set "$=%%!%%~1%%!"^
+%=                                                =% ) ^& (^
+%=                                                        =% If defined $ (^
+%=                                                                 =% Set ^"$Scale=^
+%=                                                                =%%%!$:~255,1%%!%%!$:~511,1%%!%%!$:~767,1%%!%%!$:~1023,1%%!%%!$:~1279,1%%!^
+%=                This zone is empty                                =%%%!$:~1535,1%%!%%!$:~1791,1%%!%%!$:~2047,1%%!%%!$:~2303,1%%!%%!$:~2559,1%%!^
+%=                                                                =%%%!$:~2815,1%%!%%!$:~3071,1%%!%%!$:~3327,1%%!%%!$:~3583,1%%!%%!$:~3839,1%%!^
+%=                                                                =%FEDCBA9876543210^"^&^
+%=                                                                =% If "" neq "%%!%%~1:~4095%%!" (^
+%=                                                                        =% Set /a "$L=0x%%!$Scale:~15,1%%!*256+4096"^
+%=                                                                =% ) else Set /a "$L=0x%%!$Scale:~15,1%%!*256"^
+%=                                                        =% ) else If "" neq "%%!%%~1:~4095%%!" Set "$L=4096"^
+%=                                       =% ) else Set "$L=0"^
+%=                                =% )^&^
+%=                                =% for %%# in (%%!$L%%!) do Set ^"$=%%!%%~1:~%%#%%!^
+%= Leading space not supported    =%FEDCBA9876543210FEDCBA9876543210FEDCBA9876543210FEDCBA9876543210^
+%=                                =%FEDCBA9876543210FEDCBA9876543210FEDCBA9876543210FEDCBA9876543210^
+%=                                =%FEDCBA9876543210FEDCBA9876543210FEDCBA9876543210FEDCBA9876543210^
+%=                                =%FEDCBA9876543210FEDCBA9876543210FEDCBA9876543210FEDCBA9876543210^
+%=                                =%FFFFFFFFFFFFFFFFEEEEEEEEEEEEEEEEDDDDDDDDDDDDDDDDCCCCCCCCCCCCCCCC^
+%=                                =%BBBBBBBBBBBBBBBBAAAAAAAAAAAAAAAA99999999999999998888888888888888^
+%=                                =%7777777777777777666666666666666655555555555555554444444444444444^
+%=                                =%333333333333333322222222222222221111111111111111^"^&^
+%=                                =% for %%# in ("%%!$L%%!+0x%%!$:~511,1%%!%%!$:~255,1%%!") do (If %%?==D endlocal)^&Set /A "%%~2=%%#"^
+%=                        =%) else (If %%?==D endlocal)^&Set "%%~2=0"^
+%==% )^
+) else (If %%?==D setlocal EnableDelayedExpansion)^&Set $args=
+
+:NoDividingLine
+  REM Menu internal variables
+
+  REM Valid choice characters in order to be listed
+  Set "Menu.Keys_default=1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+%= DEFAULT ORDER      =%  Set "Menu.Keys=%Menu.Keys_default%"
+%= ALPHABETICAL ORDER =%  If "%~1" == "--alpha" Set "Menu.Keys=ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+%= CUSTOM ORDER =%        If "%~1" == "--custom" If not "%~2" == "" (
+    Set "Menu.Keys=%~2"
+    %strLen% Menu.keys Menu.maxKeys
+    %= adjust for zero indexed substring operations =% Set /a Menu.maxKeys-=1
+    Setlocal EnableDelayedExpansion
+    Set "seen="
+    For /l %%i in (0 1 !Menu.maxKeys!) Do (
+      if defined seen (%= restrict custome key set to available keys and reject duplicates =%
+        For /f "delims=" %%K in ("!Menu.keys:~%%i,1!") Do If "!seen:^%%K=!" == "!seen!" if not "!Menu.Keys_default:^%%K=!" == "!Menu.Keys_default!" Set "seen=!seen!!Menu.keys:~%%i,1!"
+      ) else if not "!Menu.Keys_default:^%%K=!" == "!Menu.Keys_default!" set "seen=!Menu.keys:~%%i,1!"
+    )
+    %= revert to default if no valid keys in set =% if not defined seen set "seen=!Menu.Keys_default!"
+    For /f "delims=" %%G in ("!seen!") do endlocal & Set "Menu.keys=%%G"
+  )
+
+  %strLen% Menu.keys Menu.maxKeys
+  %= adjust for zero indexed substring operations =% Set /a Menu.maxKeys-=1
+
+  REM Precompute a reverse lookup of the key position from the listed option order in Menu.Keys
+  REM Retrieved via !menu@%%k!, where %%k is the literal key.
+
+    Set /a Menu@%Menu.keys:~0,1%=1,Menu@%Menu.keys:~1,1%=2,Menu@%Menu.keys:~2,1%=3,Menu@%Menu.keys:~3,1%=4,^
+      Menu@%Menu.keys:~4,1%=5,Menu@%Menu.keys:~5,1%=6,Menu@%Menu.keys:~6,1%=7,Menu@%Menu.keys:~7,1%=8,^
+      Menu@%Menu.keys:~8,1%=9,Menu@%Menu.keys:~9,1%=10,Menu@%Menu.keys:~10,1%=11,Menu@%Menu.keys:~11,1%=12,^
+      Menu@%Menu.keys:~12,1%=13,Menu@%Menu.keys:~13,1%=14,Menu@%Menu.keys:~14,1%=15,Menu@%Menu.keys:~15,1%=16,^
+      Menu@%Menu.keys:~16,1%=17,Menu@%Menu.keys:~17,1%=18,Menu@%Menu.keys:~18,1%=19,Menu@%Menu.keys:~19,1%=20,^
+      Menu@%Menu.keys:~20,1%=21,Menu@%Menu.keys:~21,1%=22,Menu@%Menu.keys:~22,1%=23,Menu@%Menu.keys:~23,1%=24,^
+      Menu@%Menu.keys:~24,1%=25,Menu@%Menu.keys:~25,1%=26,Menu@%Menu.keys:~26,1%=27,Menu@%Menu.keys:~27,1%=28,^
+      Menu@%Menu.keys:~28,1%=29,Menu@%Menu.keys:~29,1%=30,Menu@%Menu.keys:~30,1%=31,Menu@%Menu.keys:~31,1%=32,^
+      Menu@%Menu.keys:~32,1%=33,Menu@%Menu.keys:~33,1%=34,Menu@%Menu.keys:~34,1%=35^",Menu@%Menu.keys:~35,1%=36
+
+REM Substitute the term Header when expanding the macro variable to emit the replacement string as a menu header
+    Set "Menu.Hash=Header"
+
+REM Replacement string is evaluated during parsing of the macro variable.
+
+:REM %menu:Header=Literal String% <options> %= <- Always Supported =%
+:REM %menu:Header=!VAR!% <options>          %= <- only supported if in EnableDelayedExpansion environment. =%
+
+REM *** The above semicolon prefixed REM construct allows cmd to parse those lines safely
+REM without executing the macro body if menu is already defined. ***
+
+
+REM Menu macro Usage: %Menu% "quoted" "list of" "options"
+%= Outer for loop allows environment independant definition =% For /f %%! in ("! ^! ^^^!") Do ^
+%= IMPORTANT - No whitespace permitted here =%Set ^"Menu=@For %%n in (1 2)Do @If %%n==2 @(%\n%
+  @If defined Menu{Args} (%\n%
+    %= Switch control via !! Expansion outcome  =%  @for /f "tokens=2" %%? in ("%%!%%! D E") do @(%\n%
+    %= Switch - Setlocal / NOP                  =%    @If %%~? == D SetLocal EnableDelayedExpansion%\n%
+    %= If Header Substitute Output substitution =%      @If not "Header" == "%%!Menu.Hash%%!" @(%\n%
+         REM If Defined Menu_Div Echo(%%!Menu_Div%%!%\n%
+         Echo(Header%\n%
+       )%\n%
+       If Defined Menu_Div Echo(%%!Menu_Div%%!%\n%
+    %= ReSet Menu.# index for Menu.Item[#]      =%    @Set "Menu.#=0"%\n%
+    %= Undefine choice command key list         =%    @Set "Menu.Chars="%\n%
+    %= Redirect output to ADS; For Each in List =%    @For %%G in (%%!Menu{Args}%%!)Do @(%\n%
+    %= For Menu.Item Index value                =%      @For %%i in (%%!Menu.#%%!)Do @If not %%i GTR %%!Menu.maxKeys%%! @(%\n%
+    %= Build the Choice key list                =%        @if not defined Menu.Chars @(@Set "Menu.Chars=%%!Menu.Keys:~%%i,1%%!")Else @Set "Menu.Chars=%%!Menu.Chars%%!%%!Menu.Keys:~%%i,1%%!"%\n%
+    %= Define Menu.Item array                   =%        @Set "Menu.Item[%%!Menu.Keys:~%%i,1%%!]=%%~G"%\n%
+    %= Assign String for safe output            =%        @Set "Menu.Output=%%~G"%\n%
+    %= Display as [key] Option String           =%        @Echo([%%!Menu.Keys:~%%i,1%%!] %%!Menu.Output%%!%\n%
+    %= Increment Menu.# Index var               =%        @Set /A "Menu.#+=1"^> nul%\n%
+    %= Close Menu.# expansion loop              =%      )%\n%
+    %= Close Menu{Args} String loop             =%    )%\n%
+    %= Output Dividing Line                     =%    @If Defined Menu_Div Echo(%%!Menu_Div%%!%\n%
+    %= Select option by character index         =%    @For /f "delims=" %%k in ('%__APPDIR__%Choice.exe /N /C:%%!Menu.Chars%%!')Do @For /f "tokens=1,2 delims=;" %%V in ("%%!Menu.Item[%%k]%%!;%%!Menu@%%k%%!")Do @(%\n%
+    %= Switch - Endlocal / NOP ; returnVars     =%      @( If %%~? EQU == D EndLocal ) ^& (%\n%
+    %= exit [sub]script w/out modifying option  =%        @If /I "%%V" == "Exit" Exit /B 2%\n%
+    %= Assign 'Menu{String}' w/literal string   =%        @Set "Menu{String}=%%V"%\n%
+    %= Assign 'Menu{key}' with key pressed      =%        @Set "Menu{Key}=%%k"%\n%
+    %= Assign 'Menu{Number} with list position  =%        @Set "Menu{Number}=%%~W"%\n%
+    %= ReSet Menu Argument variable             =%        @Set "Menu{Args}="%\n%
+    %= Set errorlevel to match Menu{Number}     =%        @CMD /C Exit %%~W%\n%
+    %= Close Menu macro processing loops        =%  )  )  )%\n%
+  )Else @(%\n: Show Macro Help If no arguments supplied - will not display If expanded menu variable has trailing whitespace =%
+    @CLS%\n%
+    @Echo(Usage:%\n%
+    @Echo(%\n%
+    @Echo(%%Menu%%%\n%
+    @Echo(    Output this help info, Returns Errorlevel 0%\n%
+    @Echo(%\n%
+    @Echo(%%Menu%% "DoubleQuoted List" "Of Options"%\n%
+    @Echo(    Output the Menu list, Take input%\n%
+    @Echo(%\n%
+    @Echo(%%Menu:Header=Your Custom Header%% "DoubleQuoted List" "Of Options"%\n%
+    @Echo(    Outputs substituted Header, Output Menu list; Take input%\n%
+    @Echo(%\n%
+    @Echo(Return Variables:%\n%
+    @Echo(    Menu{String}  : The literal String%\n%
+    @Echo(    Menu{Key}     : The Key Pressed%\n%
+    @Echo(    Menu{Number}  : The list position of the option as an Integer%\n%
+    @Echo(          IE:  Option 1 = 1, Option A = 10%\n%
+    @Echo(          Note:  The Errorlevel is also Set to this value%\n%
+    @Echo(%\n%
+    @Echo(  Note:      The number of options available is limited to 36.%\n%
+    @Echo(%\n%
+    @Echo( Important: The following variable prefix is reserved: Menu%\n%
+    @Echo(%\n%
+    @Pause%\n%
+    @CLS%\n%
+    %= If Menu expanded without Args Set Errorlevel 0 =%(Call )%\n%
+  )%\n%
+%= Capture Macro input - Options List       =%)Else @Set Menu{Args}=^"
+
+%= conserve environment space if EDE is active =% If "!!" == "" Set "menu=!menu:  =!"
+========================================== REM = Menu Macro Definition END
+exit /b 0
 
 :delTemp
 	REM this file creates signal files to identify the session and communicate input.
