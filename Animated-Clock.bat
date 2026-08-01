@@ -3,7 +3,7 @@
 
 @Echo off
 REM Author: T3RRY : 19/05/2024
-REM        updated: 31/07/2026
+REM        updated: 01/08/2026
 REM this Script demonstrates various advanced batch techniques by way of
 REM a feature rich animated clock, with peristent user configuration.
 
@@ -65,7 +65,11 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
   %= DO NOT MODIFY classKEYS ASSIGNMENTS        =% Set "colorKEYS= R G B "
   %= key literal strings are used in            =% Set "adjustKEYS= + - "
   %= control flow + variable assignments        =% Set "stateKEYS= D spaceBar M H "
-  %= prevent action on Substitution Poison Key  =% For %%K in (!colorKeys!!adjustKeys!!stateKeys!) do set "Key%%K=1" 
+  %=                                            =% Set "invokeKEYS= @ < "
+  Set "invoke@=1"
+  Set "invoke<=2"
+ 
+  %= prevent action on Substitution Poison Key  =% For %%K in (!colorKeys!!adjustKeys!!stateKeys!!invokeKeys!) do set "Key%%K=1" 
   rem SPK is: '='
   for %%E in (!stateKEYS!) do Set /a "lock_Action_%%E_until=0","%%E.CStimeout=0","M.CStimeout=25"
  
@@ -111,6 +115,7 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
 
   Set "track.state[1]=%sound.background: loop= 1%"
   Set ^"track.state[2]=start /b "" "%~dp0stopMusic.bat" running^"
+  Set "StopType="
 
 (
 
@@ -129,6 +134,11 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
     Set /P "nKey="
     If not "!nKey!"=="" (
       For /f "tokens=1,2,3 Delims=`" %%C in ("!$C!`!$D!`!nKey: =spaceBar!`")Do If defined key%%E (
+        If "!StopType!" == "" Set "StopType=!invoke%%E!"
+        If not "!StopType!" == "" (
+          Set "nKey="
+          %forceQuit%
+        )
         If not "!colorKEYS: %%E =!" == "!colorKEYS!"   Set "$C=%%E" & Set /a "$[]R=0,$[]G=0,$[]B=0,$[]%%E=1"
         If not "!adjustKEYS: %%E =!" == "!adjustKEYS!" Set /A "$%%C[%%D]%%E=1","%CLAMP255%"
         If not "!stateKEYS: %%E =!" == "!stateKEYS!" (
@@ -141,15 +151,16 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
           )
         )
       )
-      If /I "!nKey:~-4!" == "quit" (
+      If /I "!nKey:~-4!" == "quit" (If "!StopType!" == "" Set "StopType=0"
         %= save config state on exit =% Set $ >"%~f0:Config:$data"
+        1>"%runState%" echo(!stopType!
         Call:Cleanup
       )
     )
     %= parse time =%
     for /f "tokens=1-4 delims=:.," %%a in ("!time: =0!")Do (
 
-      %sound_check% ( 
+      %sound_check% (%= emit associated sound using heirarchal priority =%
         If not "%%c" == "!second!" If "%%b" == "!minute!" (
           %sound.second: loop= 0%
           set "second=%%c"
@@ -180,7 +191,7 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
       %= assign to variable to tokenize per character. cheaper to substring outside loop =%
       Set "t=%%a%%b%%c%%d"
 
-      %= tokenised character expands $color[tokenIndex] replacing # with token value =%
+      %= tokenised character expands [tokenIndex] replacing # with token value =%
       %= RESERVED token allows semicolon to be used to reference HH MM SS CS seperator =%
       REM for metavariables adhere to ascii value order ... ,.-/0123456789:; ...
       Set "t=!t:~0,1! !t:~1,1! !t:~2,1! !t:~3,1! !t:~4,1! !t:~5,1! !t:~6,1! !t:~7,1! RESERVED !_step!"
@@ -217,10 +228,11 @@ REM require positive affirmation before continuing.
      Echo(%\E%[36m VbScript        %\E%[0m-%\E%[33m Play windows .wav files for soundFX
      Echo(%\E%[36m Curl            %\E%[0m-%\E%[33m Download music file/s if approved
      Echo(%\E%[36m NTFS ADS        %\E%[0m-%\E%[33m Save and load user settings
-     Echo(%\E%[0m                   Manage ADS files by invoking with arg:
+     Echo(%\E%[0m                   Manage ADS by invoking with key '@' or arg:
      Echo(%\E%[38;5;150m %~nx0 Manage-Ads
      Echo(%\E%[0;36m Temporary Files %\E%[0m-%\E%[33m Inter-process communication
-     Echo(%\E%[0m                   Remove temp files by invoking with arg: 
+     Echo(%\E%[0m                   Remove temp files using key '^<'
+     Echo(%\E%[0m                   or invoke this script with arg: 
      Echo(%\E%[38;5;150m %~nx0 delTemp
      Echo( 
      Echo(%\E%[0m If accepted, this notice will not be displayed again.
@@ -351,13 +363,18 @@ REM DDE environment active
 
   Mode %$columns%,%$lines%
 
+  Set "runstate=%temp%\%~n0_state_IPC.dat"
   If defined WT_SESSION Start /Wait /B "" "%~F0" XCOPYCONTROLLER 1>"%SignalFile%" 2> nul | "%~F0" %Script% <"%SignalFile%" 2> nul
   If not defined WT_SESSION Start /Wait /B "" "%~F0" XCOPYCONTROLLER 1>"%SignalFile%" 2> nul | 1>"%SignalFile:signal=mtPS%" 2>"%SignalFile:signal=mtPS_debug%" powershell.exe -noprofile -ExecutionPolicy Bypass -file "%~dp0%id%.ps1" %$Lines% %$Columns% | "%~F0" %Script% <"%SignalFile%" 2> nul
-  Endlocal
 
   REM Processes have resolved; end script. cleanup this processes lock file.
-  Del "%SignalFile%"
+  For /f "UseBackQ Delims=" %%G in ("%runState%") Do Set "stopType=%%G"
+  1> nul 2> nul Del "%SignalFile%"
+  1> nul 2> nul Del "%SignalFile:signal=abort%"
   Del /f /q "%~dp0%~n0*.ps1" 2> nul 1> nul
+  If "%stopType%" == "1" Call:Manage-ADS
+  If "%stopType%" == "2" Call:DelTemp 1> nul 2> nul
+  Endlocal
 
 Endlocal & Goto:Eof
 
@@ -414,21 +431,25 @@ Endlocal & Goto:Eof
 
 
 	)%= Do Not Modify. Linefeed Variable =%
+        Set "ForceQuit="
+	For /F "Delims=" %%G in ('Where Powershell.exe')Do If not Defined ForceQuit Set ForceQuit=%%G -c "$wshell = New-Object -ComObject wscript.shell; $wshell.SendKeys('{TAB}')"
+
 exit /b
 
 
 :Cleanup
-1> nul 2> nul (
-	<Nul Set /P "=%\E%[1;1H%\E%[2J%\E%[?25h%\E%[0;5m..." 1> con
-	<"%SignalFile:Signal=Abort%" Set /P "XcopyError="
-	If Defined XcopyError Echo(!XcopyError!
-	CALL "%TEMP%\%~n0_%Lock%_restore.cmd"
-        Del "%~dp0cmd.run"
-	Del "%TEMP%\%~n0_%lock%*.cmd"
-	Del "%~dp0play_*.vbs"
-        <Nul Set /P "=%\E%[1;1H%\E%[2J%\E%[0m" 1> con
-        (title )
-)
+  1> nul 2> nul (
+    <Nul Set /P "=%\E%[1;1H%\E%[2J%\E%[?25h%\E%[0;5m..." 1> con
+    <"%SignalFile:Signal=Abort%" Set /P "XcopyError="
+    If Defined XcopyError Echo(!XcopyError!
+    CALL "%TEMP%\%~n0_%Lock%_restore.cmd"
+    Del "%~dp0cmd.run"
+    Del "%TEMP%\%~n0_%lock%*.cmd"
+    Del "%~dp0play_*.vbs"
+    <Nul Set /P "=%\E%[1;1H%\E%[2J%\E%[0m" 1> con
+    (title )
+  )
+REM The below line must Occur here.
 1> nul 2> nul Call "%~dp0stopMusic.bat"
 EXIT
 
