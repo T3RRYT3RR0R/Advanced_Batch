@@ -161,7 +161,8 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
     )
     %= parse time =%
     for /f "tokens=1-4 delims=:.," %%a in ("!time: =0!")Do (
-
+      Set /a "now=(((1%%a*60)+1%%b)*60+1%%c)*100+1%%d-36610100"
+      If !now! lss 0 Set /a now+=24*60*60*100
       %sound_check% (%= emit associated sound using heirarchal priority =%
         If not "%%c" == "!second!" If "%%b" == "!minute!" (
           %sound.second: loop= 0%
@@ -176,8 +177,7 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
           set "hour=%%a"
         )
       )
-      Set /a "now=(((1%%a*60)+1%%b)*60+1%%c)*100+1%%d-36610100"
-      If !now! lss 0 Set /a now+=24*60*60*100
+
       If !now! gtr !next! (%= every at best _step_CS =%
         %phase.hue%,"next+=_step_CS"
         Set header=%header%
