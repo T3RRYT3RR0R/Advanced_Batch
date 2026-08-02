@@ -179,7 +179,7 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
       )
 
       If !now! gtr !next! (%= every at best _step_CS =%
-        %phase.hue%,"next+=_step_CS"
+        %phase.hue%,"next=now + _step_CS"
         Set header=%header%
         Set footer=%footer%
         If "!$H!" == "2" (
@@ -188,7 +188,7 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
         )
       )
       If 1!now! gtr !$spaceBar!!nextb! (%= every at best _step_CSb =%
-        Set /a "nextb+=_step_CSb","_step=_step %% !_StepMax! + 1"
+        Set /a "nextb=now + _step_CSb","_step=_step %% !_StepMax! + 1"
       )
       %= assign to variable to tokenize per character. cheaper to substring outside loop =%
       Set "t=%%a%%b%%c%%d"
