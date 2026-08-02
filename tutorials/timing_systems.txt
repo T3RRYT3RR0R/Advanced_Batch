@@ -1,0 +1,75 @@
+this is the construct that allows centisecond scale time control
+
+  for /f "tokens=1-4 delims=:.," %%a in ("!time: =0!")Do (
+    Set /a "now=(((1%%a*60)+1%%b)*60+1%%c)*100+1%%d-36610100"
+    If !now! lss 0 Set /a now+=24*60*60*100
+    rem animation script body
+  )
+
+Essentially:
+  current time > this.Centisecond > if this.Centisecond <=0 > + day.Centiseconds
+
+In detail:
+  Read the current HH:MM:SS.CC
+  Convert it into hundredths of a second [Centisecond], with 1 prefixing to prevent leading 0 errors with set /a.
+  Shift the result by a fixed amount 36610100 to compensate for scaling from 1 prefixing.
+  If that moves it below zero, add one day's worth of time.
+  The result is therefore a continuous, wrapping time counter.
+  The animation code can use that number to decide when each animation step should occur, without needing to track elapsed time separately.
+
+in animated-clock, the now value is our source of truth for fine-scale timing
+ * modified from source for clarity,
+   Where next or nextID is the offset time we intend to adjust properties:
+
+  REM interval 1... Hue shift at specified _step_CS for time separator and Header / footer
+  If !now! gtr !next! (
+
+    REM recalculate next offset for current now cs
+    Set /a "next=now + _step_CS"
+
+    REM group actions intended to occur at _step_CS interval
+    %phase.hue%
+    REM apply default definitions assuming header state $H=1 
+    Set header=%header%
+    Set footer=%footer%
+
+    REM modify header/footer if state $H=2 [hidden] 
+    If "!$H!" == "2" (
+      Set "header=%\E%[H%\E%[48;2;!$R[2]!;!$G[2]!;!$B[2]!m%\E%[0J"
+      Set "footer="
+    )
+  )
+
+  REM interval 2...
+  REM combined conditional states for $spaceBar=1|2
+  REM skips execution if $spaceBar=2 or nextb LSS now
+  If 1!now! gtr !$spaceBar!!nextb! (
+    Set /a "nextb=now + _step_CSb","_step=_step %% !_StepMax! + 1"
+  )
+
+
+For courser time control, the values of hour, minute, and second can be used more directly
+to control script flow:
+
+  REM if sound system allowed and $M state not 2 [mute] 
+  %sound_check% (
+ 
+    REM second changed minute is same
+    If not "%%c" == "!second!" If "%%b" == "!minute!" (
+
+      REM perform task
+      %sound.second: loop= 0%
+
+      REM update source of truth
+      set "second=%%c"
+    )
+
+    If not "%%b" == "!minute!" If "%%a" == "!hour!" (
+      %sound.minute: loop= 0%
+      set "minute=%%b"
+    )
+    If not "%%a" == "!hour!" (
+      %sound.hour: loop= 0%
+      set "hour=%%a"
+    )
+  )
