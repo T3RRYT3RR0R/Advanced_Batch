@@ -104,7 +104,8 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
   )
   Set /A "$[]R=1","$M=1","$H=1","$D=1","$R[1]=145","$G[1]=30","$B[1]=180","$R[2]=12","$G[2]=20","$B[2]=20","$spaceBar=1"
   Set "$C=R"
-
+  Set "$background=48;2;!$R[2]!;!$G[2]!;!$R[2]!m"
+  Set "$foreground=38;2;!$R[1]!;!$G[1]!;!$R[1]!m"
 
   More < "%~f0:Config:$Data" 2> nul 1> nul && (
     For /f "UseBackQ Delims=" %%V in ("%~f0:Config:$Data")Do Set "%%V"
@@ -156,7 +157,7 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
           %forceQuit%
         )
         If not "!colorKEYS: %%E =!" == "!colorKEYS!"   Set "$C=%%E" & Set /a "$[]R=0,$[]G=0,$[]B=0,$[]%%E=1"
-        If not "!adjustKEYS: %%E =!" == "!adjustKEYS!" Set /A "$%%C[%%D]%%E=1","%CLAMP255%"
+        If not "!adjustKEYS: %%E =!" == "!adjustKEYS!" Set /A "$%%C[%%D]%%E=1","%CLAMP255%" & Set "$!$domain[%%D]!=!$D[%%D]!;2;!$R[%%D]!;!$G[%%D]!;!$B[%%D]!m"
         If not "!stateKEYS: %%E =!" == "!stateKEYS!" (
           If !Now! GTR !lock_Action_%%E_until! (
             Set /A "$%%E=$%%E %% 2 + 1"
@@ -213,7 +214,7 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
       Set "t=!t:~0,1! !t:~1,1! !t:~2,1! !t:~3,1! !t:~4,1! !t:~5,1! !t:~6,1! !t:~7,1! RESERVED !_step!"
 
       For /f "tokens=1-10" %%1 in ("!t!")Do (
-        Echo(%\E%[H%\E%[48;2;!$R[2]!;!$G[2]!;!$B[2]!m%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m!Header!%\E%[48;2;!$R[2]!;!$G[2]!;!$B[2]!m%\E%[0J%\E%[8;13H![%%1]:#=%%1!![%%2]:#=%%2!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m![%%3]:#=%%3!![%%4]:#=%%4!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m![%%5]:#=%%5!![%%6]:#=%%6!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[38;2;!$R[1]!;!$G[1]!;!$B[1]!m![%%7]:#=%%7!![%%8]:#=%%8!%\E%[5E!Footer!%\E%[0m
+        Echo(%\E%[H!Header!%\E%[!$background!%\E%[!$foreground!%\E%[0J%\E%[8;13H![%%1]:#=%%1!![%%2]:#=%%2!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[!$foreground!![%%3]:#=%%3!![%%4]:#=%%4!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[!$foreground!![%%5]:#=%%5!![%%6]:#=%%6!%\E%[38;2;!rr!;!gg!;!bb!m!_%%:!%\E%[!$foreground!![%%7]:#=%%7!![%%8]:#=%%8!%\E%[5E!Footer!%\E%[0m
   ) ) )
 )
 EXIT
