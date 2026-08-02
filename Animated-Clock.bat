@@ -3,7 +3,7 @@
 
 @Echo off
 REM Author: T3RRY : 19/05/2024
-REM        updated: 31/07/2026
+REM        updated: 02/08/2026
 REM this Script demonstrates various advanced batch techniques by way of
 REM a feature rich animated clock, with peristent user configuration.
 
@@ -59,8 +59,7 @@ rem 6000 CS / minute. 6000 / 510 steps =11 CS to cycle hue wheel in 1 minute, wh
 
 REM Branchless version of phase.hue uses abs from the lib\maths library by IcarusLives
 REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
-  Set ^"phase.hue=Set /a "hue.step=hue.step %% 510 + hue_acc","p=(hue.step)-255, rr=255-(M=(p>>31),(p^M)-M)","p=((hue.step+170)%%510)-255, gg=255-(M=(p>>31),(p^M)-M)","p=((hue.step+340)%%510)-255, bb=255-(M=(p>>31),(p^M)-M)","rr1=rr*100/120,gg1=gg*100/120,bb1=bb*100/120,rr2=rr1*100/120,gg2=gg1*100/120,bb2=bb1*100/120,rr3=rr2*100/115,gg3=gg2*100/115,bb3=bb2*100/115"^"
-
+  Set ^"phase.hue=Set /a "hue.step=hue.step %% 510 + hue_acc","p=((hue.step)%%510)-255, rr=255-(M=(p>>31),(p^M)-M)","p=((hue.step+170)%%510)-255, gg=255-(M=(p>>31),(p^M)-M)","p=((hue.step+340)%%510)-255, bb=255-(M=(p>>31),(p^M)-M)","rr1=rr*100/120,gg1=gg*100/120,bb1=bb*100/120,rr2=rr1*100/120,gg2=gg1*100/120,bb2=bb1*100/120,rr3=rr2*100/115,gg3=gg2*100/115,bb3=bb2*100/115"^"
 
   %phase.hue%
 
@@ -90,8 +89,8 @@ REM https://github.com/IcarusLivesHF/Atlas/blob/main/lib/Math.bat
   )
   Set /A "$[]R=1","$M=1","$H=1","$D=1","$R[1]=145","$G[1]=30","$B[1]=180","$R[2]=12","$G[2]=20","$B[2]=20","$spaceBar=1"
   Set "$C=R"
-  Set "$foreground=38;2;!$R[1]!;!$G[1]!;!$B[1]!m"
   Set "$background=48;2;!$R[2]!;!$G[2]!;!$B[2]!m"
+  Set "$foreground=38;2;!$R[1]!;!$G[1]!;!$B[1]!m"
 
   More < "%~f0:Config:$Data" 2> nul 1> nul && (
     For /f "UseBackQ Delims=" %%V in ("%~f0:Config:$Data")Do Set "%%V"
@@ -255,7 +254,7 @@ REM require positive affirmation before continuing.
   )
 
 :accepted
-  <Nul Set /P "=%\E%[1;1H%\E%[2J%\E%[?25l%\E%[0;5m..."
+  <Nul Set /P "=%\E%[1;1H%\E%[2J%\E%[?25l%\E%[0;5m..." %= Setup animation =%
  
   2> nul 1> nul ( More < "%~f0:exports:$Data" ) && (
     For /f "UseBackQ Delims=" %%V in ("%~f0:exports:$Data")Do Set "%%V"
@@ -375,6 +374,7 @@ REM DDE environment active
   1> nul 2> nul Del "%SignalFile%"
   1> nul 2> nul Del "%SignalFile:signal=abort%"
   Del /f /q "%~dp0%~n0*.ps1" 2> nul 1> nul
+  <Nul Set /P "=%\E%[1;1H%\E%[2J%\E%[0m" %= clear exit animation =%
   If "%stopType%" == "1" Call:Manage-ADS
   If "%stopType%" == "2" Call:DelTemp 1> nul 2> nul
   Endlocal
@@ -441,19 +441,18 @@ exit /b
 
 
 :Cleanup
+  <Nul Set /P "=%\E%[H%\E%[J%\E%[?25h%\E%[0;5m..." %= exit animation =%
   1> nul 2> nul (
-    <Nul Set /P "=%\E%[1;1H%\E%[2J%\E%[?25h%\E%[0;5m..." 1> con
     <"%SignalFile:Signal=Abort%" Set /P "XcopyError="
     If Defined XcopyError Echo(!XcopyError!
     CALL "%TEMP%\%~n0_%Lock%_restore.cmd"
     Del "%~dp0cmd.run"
     Del "%TEMP%\%~n0_%lock%*.cmd"
     Del "%~dp0play_*.vbs"
-    <Nul Set /P "=%\E%[1;1H%\E%[2J%\E%[0m" 1> con
     (title )
   )
-REM The below line must Occur here.
-1> nul 2> nul Call "%~dp0stopMusic.bat"
+  REM The below line must Occur here as SubScript uses hard EXIT.
+  1> nul 2> nul Call "%~dp0stopMusic.bat"
 EXIT
 
 :Manage-ADS
