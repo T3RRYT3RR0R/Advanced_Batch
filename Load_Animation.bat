@@ -108,7 +108,7 @@ _%%i.pn+=_%%i.pd                                ; increase program next by progr
 _%%i.pn+=(_%%i.pl)*((_%%i.pl - _%%i.pn)>>31)    ; decrease by program length 'pl' if _#.pn exceeds _#.pl [ _#.pl * (0 or -1) ]
 
 REM part B
-_%%i.pc+=(_%%i.i^!_%%i.pn^!)*_%%i.pd            ; increase pogram counter by _#.i!_#.pn! if _#.pd == 1
+_%%i.pc+=(_%%i.i^!_%%i.pn^!)*_%%i.pd            ; increase program counter by _#.i!_#.pn! if _#.pd == 1
 _%%i.x+=_%%i.x^!_%%i.pn^!                       ; modify .x by sign of _#.x!_#.pn!
 _%%i.y+=_%%i.y^!_%%i.pn^!                       ; modify .y by sign of _#.y!_#.pn!
 
