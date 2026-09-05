@@ -80,6 +80,7 @@ if not defined clearing Set rand.hue="rr=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFF
 (title )
 
 rem constrain deltaTime of MoveRate to representable tElapse ; 1= 100cs, 2 = 50cs, 3 = 33cs, 100 = 1cs
+rem 1, 2 and 3cs tick rates only likely to be achieved with low entitiy count or when using delta catch up mode
 Set "MoveRate=100,50,33,21,18,16,14,12,11,10,9,8,7,6,5,4,3,2"
 If /i "!mode!" == "burst" Set "MoveRate=!MoveRate:*18,=!"
 rem Dirty is unlikely to be false for MoveRates GEQ 18 [ corresponding to 6 'ticks' or more per second ]
