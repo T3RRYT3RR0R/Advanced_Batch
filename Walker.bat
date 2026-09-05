@@ -13,7 +13,9 @@ Setlocal EnableDelayedExpansion
 
 For /f %%E in ('echo prompt $E^|%comspec%') do set \E=%%E
 
-For /f "delims=0123456789 " %%V in ("%*") do goto:skip
+For /f "delims=1234 " %%V in ('echo %*') do goto:skip
+if not %errorlevel% == 0 goto:skip
+
 Set "argV= 4422"
 For /l %%i in (1 1 4) Do (
   Call set "arg%%~i=%%%%~i"
@@ -22,7 +24,7 @@ For /l %%i in (1 1 4) Do (
     Set "arg%%i=Echo !arg%%i!^^|"
 ) )
 :skip
-
+cls
 if not defined arg1 (
   Echo( dimensions?
   echo 1 : 12x36
@@ -72,14 +74,20 @@ set /a "`=(!RANDOM!<<15)|!RANDOM!,`+=(((`-1)>>31)&1)"
 Set rand.hue="rr=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(255-35+1)))+35,gg=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(255-35+1)))+35,bb=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(255-35+1)))+35,rr=rr*100/125,gg=gg*100/125,bb=bb*100/125"
 if not defined clearing Set rand.hue="rr=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(200-45+1)))+45,gg=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(25-10+1)))+10,bb=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(25-10+1)))+10,rr=rr*100/125,gg=gg*100/125,bb=bb*100/125"
 
+rem constrain deltaTime of MoveRate to representable tElapse ; 1= 100cs, 2 = 50cs, 3 = 33cs, 100 = 1cs
+Set "MoveRate=2,3,4,5,6,7,8,9,10,11,12,14,16,18,21,30,50,100"
+Set i=1
+Set /a "MoveRate!i!=100/%MoveRate:,=" & Set /a "i+=1" & Set /a "MoveRate!i!=100/%"
+
 For /l %%i in (1 1 !#!) do if %%i lss 31 (rem frame generator restriction
   Set /a !rand.hue!
   Set "_%%i.c=%\E%[38;2;!rr!;!gg!;!bb!m"
-  Set /a "_%%i.mr=!random! %% 48 + 1"
+  Set /a "delta=!random! %% !i! + 1"
+  For /f "delims=" %%T in ("!Delta!") Do Set /a "_%%i.mr=!MoveRate%%T!"
   Set /a "_%%i.fL=(!random! %% 3 + 3)+1,_%%i.xL=1,_%%i.xH=wid-(%%i %%2),_%%i.w=1,_%%i.x=!random! %% (wid/2) + (wid/4)" || pause
   Set /a "_%%i.fH=(!random! %% 8 + 6)+1,_%%i.yL=1,_%%i.yH=hei+(%%i %%2),_%%i.h=1,_%%i.y=!random! %% (hei/2) + (hei/4)" || pause
 )
-
+For /f "tokens=1 delims==" %%G in ('Set MoveRate') Do Set "%%G="
 
 mode %wid%,%sHei%
 
