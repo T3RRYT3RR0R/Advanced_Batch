@@ -16,7 +16,7 @@ For /f %%E in ('echo prompt $E^|%comspec%') do set \E=%%E
 For /f "delims=1234 " %%V in ('echo %*') do goto:skip
 if not %errorlevel% == 0 goto:skip
 
-Set "argV= 4422"
+Set "argV= 4432"
 For /l %%i in (1 1 4) Do (
   Call set "arg%%~i=%%%%~i"
   If defined arg%%i (
@@ -50,12 +50,15 @@ For /f "Delims=" %%K in ('%arg2%choice /n /c:1234 2^> nul') Do (
 
 if not defined arg3 (
   Echo(
-  Echo Variable speed mode?
-  Echo 1: no
-  Echo 2: yes
+  Echo speed mode?
+  Echo 1: default
+  Echo 2: Delta Catchup
+  Echo 3: Burst
 )
-Set "mode="
-For /f "Delims=" %%K in ('%arg3%choice /n /c:12 2^> nul') Do If "%%K" == "2" Set "mode=burst"
+Set "mode="& Set "modes=1:default 2:delta 3:burst"
+For /f "Delims=" %%K in ('%arg3%choice /n /c:123 2^> nul') Do (
+  For /f "tokens=1 delims= " %%G in ("!modes:*%%K:=!") Do set "mode=%%G"
+)
 
 if not defined arg4 (
   Echo(
@@ -72,10 +75,15 @@ set /a "`=(!RANDOM!<<15)|!RANDOM!,`+=(((`-1)>>31)&1)"
 
 
 Set rand.hue="rr=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(255-35+1)))+35,gg=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(255-35+1)))+35,bb=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(255-35+1)))+35,rr=rr*100/125,gg=gg*100/125,bb=bb*100/125"
+
 if not defined clearing Set rand.hue="rr=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(200-45+1)))+45,gg=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(25-10+1)))+10,bb=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(25-10+1)))+10,rr=rr*100/125,gg=gg*100/125,bb=bb*100/125"
+(title )
 
 rem constrain deltaTime of MoveRate to representable tElapse ; 1= 100cs, 2 = 50cs, 3 = 33cs, 100 = 1cs
-Set "MoveRate=2,3,4,5,6,7,8,9,10,11,12,14,16,18,21,30,50,100"
+Set "MoveRate=100,50,33,21,18,16,14,12,11,10,9,8,7,6,5,4,3,2"
+If /i "!mode!" == "burst" Set "MoveRate=!MoveRate:*18,=!"
+rem Dirty is unlikely to be false for MoveRates GEQ 18 [ corresponding to 6 'ticks' or more per second ]
+
 Set i=1
 Set /a "MoveRate!i!=100/%MoveRate:,=" & Set /a "i+=1" & Set /a "MoveRate!i!=100/%"
 
@@ -92,7 +100,12 @@ For /f "tokens=1 delims==" %%G in ('Set MoveRate') Do Set "%%G="
 mode %wid%,%sHei%
 
 
-if /i not "!mode!" == "burst" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-et)>>31)|(_%%i.rc*-1)),_%%i.mn=_%%i.md*(et+_%%i.mr)+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),_%%i.x+=_%%i.md*_%%i.sx,_%%i.x-=-1*((_%%i.xH-(_%%i.x+_%%i.w))>>31),_%%i.x+=-1*((_%%i.x-_%%i.xL)>>31),_%%i.y+=_%%i.md*_%%i.sy,_%%i.y-=-1*((_%%i.yH-(_%%i.y+_%%i.h))>>31),_%%i.y+=-1*((_%%i.y-_%%i.yL)>>31),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc"
+
+rem requires - + by sign value when prforming min / max boundary test
+
+if /i "!mode!" == "default" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-et)>>31)|(_%%i.rc*-1)),_%%i.mn=_%%i.md*(et+_%%i.mr)+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),_%%i.x+=_%%i.md*_%%i.sx,_%%i.x-=-1*((_%%i.xH-(_%%i.x+_%%i.w))>>31),_%%i.x+=-1*((_%%i.x-_%%i.xL)>>31),_%%i.y+=_%%i.md*_%%i.sy,_%%i.y-=-1*((_%%i.yH-(_%%i.y+_%%i.h))>>31),_%%i.y+=-1*((_%%i.y-_%%i.yL)>>31),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc"
+
+if /i "!mode!" == "delta" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-et)>>31)|(_%%i.rc*-1)),_%%i.mn=_%%i.md*(et+_%%i.mr)+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),cu=((-1*((_%%i.mn-et))/_%%i.mr),cu=cu+((cu|-cu)>>31)+1,_%%i.cd-=cu,_%%i.x+=_%%i.md*_%%i.sx*cu,_%%i.y+=_%%i.md*_%%i.sy*cu,_%%i.y+=_%%i.md*_%%i.sy,_%%i.y+=-1*((_%%i.y-_%%i.yL)>>31),_%%i.x+=((_%%i.x-_%%i.xL)>>31)*(-1*(_%%i.xL-_%%i.x)),_%%i.y+=((_%%i.y-_%%i.yL)>>31)*(-1*(_%%i.yL-_%%i.y)),?=(_%%i.x+_%%i.w-1)-_%%i.xH,_%%i.x=_%%i.xH+(?&(?>>31)),?=(_%%i.y+_%%i.h-1)-_%%i.yH,_%%i.y=_%%i.yH+(?&(?>>31)),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc"
 
 if /i "!mode!" == "burst" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-et)>>31)|(_%%i.rc*-1)),_%%i.mn=_%%i.md*(et+(_%%i.mr-(_%%i.fH*_%%i.xc)))+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),_%%i.x+=_%%i.md*_%%i.sx,_%%i.x-=-1*((_%%i.xH-(_%%i.x+_%%i.w))>>31),_%%i.x+=-1*((_%%i.x-_%%i.xL)>>31),_%%i.y+=_%%i.md*_%%i.sy,_%%i.y-=-1*((_%%i.yH-(_%%i.y+_%%i.h))>>31),_%%i.y+=-1*((_%%i.y-_%%i.yL)>>31),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc"
 
@@ -111,8 +124,6 @@ rem @mark clock by IcarusLives
 set "@mark=((((1^!clock:~0,2^!-100)*60+(1^!clock:~3,2^!-100))*60+(1^!clock:~6,2^!-100))*100+(1^!clock:~9,2^!-100))"
 rem set /a "step=%~1, maxCatchUp=step-1" 2> nul || Set /a "step=4, maxCatchUp=step-1" 
 
-set "clock=!time: =0!"
-set /a "t1=%@mark%, et=t1, et+=(e>>31&1)*8640000"
 <nul set /p "=%\E%[?25l"
 
 
@@ -140,15 +151,19 @@ Set Frame=For /f "tokens=1-!#! delims= " %%@ in ("!entities:~1!") Do Echo(!Scree
   Set "screen="
   Set "@mark="
   
+  set "clock=!time: =0!"
+  set /a "et=%@mark%, et+=(e>>31&1)*8640000","lt=et","frame=0"
   for /l %%i in () Do (
     if not "!time: =0!" == "!clock!" (
       set "clock=!time: =0!"
-      set /a "et=%@mark%, et+=(e>>31&1)*8640000","Dirty=0"
+      set /a "et=%@mark%, et+=((et-lt)>>31&1)*8640000","Dirty=0"
 
       For /l %%i in (1 1 !#!) Do Set /a "%rWalker%"
-
-      %= Virtually always dirty as each ent has independent tElapse tracking  =%
-      If !Dirty! NEQ 0 %frame%
+      If !Dirty! NEQ 0 (
+        Set /a "frame+=1,ttlE+=(et-lt),ips=100/(ttlE/frame),ttlE/=(-1*((999-frame)>>31))+1,frame/=(-1*((999-frame)>>31))+1,lt=et"
+        Title ips:!ips!
+        %frame%
+      )
 ) ) )
 
 Echo(%\E%[?25h
