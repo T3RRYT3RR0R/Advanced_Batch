@@ -13,71 +13,88 @@ Setlocal EnableDelayedExpansion
 
 For /f %%E in ('echo prompt $E^|%comspec%') do set \E=%%E
 
-For /f "delims=1234 " %%V in ('echo %*') do goto:skip
+For /f "delims=123456-? " %%V in ('echo %*') do goto:skip
 if not %errorlevel% == 0 goto:skip
 
-Set "argV= 4432"
-For /l %%i in (1 1 4) Do (
+Set args= 1:Dimensions 2:Walker.Count 3:Speed.Mode 4:Screen.Clearing 5:Color.Mode
+Set "argV= 64322"
+Set "argHelp="
+For /l %%i in (1 1 5) Do (
   Call set "arg%%~i=%%%%~i"
+  if "%%i:!arg1!" == "1:-?" Set "argHelp=1" & Set "arg1="
+  if defined argHelp For /f "tokens=1 delims= " %%G in ("!args:*%%i:=!") Do (Set "arg=%%~G"
+    Echo( Arg:%%i  1~!argV:~%%i,1! : !arg:.= !
+  )
   If defined arg%%i (
     if !arg%%i! GTR !argV:~%%i^,1! Set "arg%%i=!argV:~%%i,1!"
     Set "arg%%i=Echo !arg%%i!^^|"
 ) )
+
+if defined argHelp (
+  Timeout /t 5
+  exit /b 0
+)
 :skip
-cls
-if not defined arg1 (
-  Echo( dimensions?
-  echo 1 : 12x36
-  echo 2 : 16x48
-  echo 3 : 20x60
-  echo 4 : 24x72
-)
-For /f "Delims=" %%K in ('%arg1%choice /n /c:1234 2^> nul') Do (
-  Set /a "hei=(((%%K + 3) * 4)-4)","wid=hei*3","shei=hei+1"
+
+
+(Set \n=^^^
+
+%= do not modify this \n newline defintion =%)
+
+Set menu=For %%n in (1 2) Do if %%n == 2 (%\n%
+  Set "choices="%\n%
+  For /f "tokens=1 Delims=?" %%Q in ("^!Args^!") Do (%\n%
+    Set "Options=^!Args:%%~Q? =^!"%\n%
+    if not defined arg# Echo(%\E%[H%\E%[2J%\E%[E%%Q?%\n%
+    For %%G in (^^!Options^^!) Do (%\n%
+      Set "arg=%%~G"%\n%
+      Set "choices=^!choices^!^!arg:~0,1^!"%\n%
+      if not defined arg# Echo( %%~G%\n%
+    )%\n%
+  )%\n%
+  Set "menu.Ask=^!arg#^!choice /n /c:^!choices^! 2^^^^> nul"%\n%
+)Else set Args=
+
+<nul Set /p "=%\E%[H%\E%[2J%\E%[48;2;12;12;60m%\E%[38;2;210;120;30m"
+
+%menu:#=1% dimensions? 1:12x36 2:16x48 3:20x60 4:24x72 5:28x84 6:32x96
+For /f "Delims=" %%K in ('%menu.Ask%') Do (
+  For /f "tokens=1,2 delims=x " %%G in ("!Options:*%%K:=!") Do (
+   Set /a "hei=%%G","wid=%%H","shei=hei+1"
+) )
+
+%menu:#=2% how many 'walkers?  1:12 2:18 3:24 4:30
+For /f "Delims=" %%K in ('%menu.Ask%') Do (
+  For /f "tokens=1 delims= " %%G in ("!Options:*%%K:=!") Do (
+    Set /a "#=%%G"
+) )
+
+Set "mode="
+%menu:#=3% Walker Mode? 1:default 2:Delta 3:burst
+For /f "Delims=" %%K in ('%menu.Ask%') Do ( 
+  For /f "tokens=1 delims= " %%G in ("!Options:*%%K:=!") Do set "mode=%%G"
 )
 
-if not defined arg2 (
-  Echo(
-  Echo how many 'walkers?
-  Echo 1 : 12
-  Echo 2 : 18
-  Echo 3 : 24
-  Echo 4 : 30
-)
-For /f "Delims=" %%K in ('%arg2%choice /n /c:1234 2^> nul') Do (
-  Set /a "#=(%%K+1)*6"
-)
-
-if not defined arg3 (
-  Echo(
-  Echo speed mode?
-  Echo 1: default
-  Echo 2: Delta Catchup
-  Echo 3: Burst
-)
-Set "mode="& Set "modes=1:default 2:delta 3:burst"
-For /f "Delims=" %%K in ('%arg3%choice /n /c:123 2^> nul') Do (
-  For /f "tokens=1 delims= " %%G in ("!modes:*%%K:=!") Do set "mode=%%G"
-)
-
-if not defined arg4 (
-  Echo(
-  Echo Screen clearing?
-  Echo 1: no
-  Echo 2: yes
-)
+%menu:#=4% Screen Clearing? 1:no 2:yes
 Set "clearing="
-For /f "Delims=" %%K in ('%arg4%choice /n /c:12 2^> nul') Do If "%%K" == "2" Set "clearing=%\E%[H%\E%[2J"
+For /f "Delims=" %%K in ('%menu.Ask%') Do If "%%K" == "2" Set "clearing=%\E%[H%\E%[2J"
+
+
+%menu:#=5% Color Mode? 1:Red 2:Random
+For /f "Delims=" %%K in ('%menu.Ask%') Do (
+  For /f "tokens=1 delims= " %%G in ("!Options:*%%K:=!") Do set "colorMode=%%G"
+)
 
 rem random seed method by IcarusLives
 set /a "'=(%RANDOM%<<15)|%RANDOM%,'+=((('-1)>>31)&1)"
 set /a "`=(!RANDOM!<<15)|!RANDOM!,`+=(((`-1)>>31)&1)"
 
 
-Set rand.hue="rr=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(255-35+1)))+35,gg=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(255-35+1)))+35,bb=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(255-35+1)))+35,rr=rr*100/125,gg=gg*100/125,bb=bb*100/125"
+if /i "!colorMode!" == "Random" Set rand.hue="rr=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(255-35+1)))+35,gg=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(255-35+1)))+35,bb=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(255-35+1)))+35,rr=rr*100/125,gg=gg*100/125,bb=bb*100/125"
 
-if not defined clearing Set rand.hue="rr=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(200-45+1)))+45,gg=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(25-10+1)))+10,bb=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(25-10+1)))+10,rr=rr*100/125,gg=gg*100/125,bb=bb*100/125"
+if /i "!colorMode!" == "Red" Set rand.hue="rr=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(200-45+1)))+45,gg=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(25-10+1)))+10,bb=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(25-10+1)))+10,rr=rr*100/125,gg=gg*100/125,bb=bb*100/125"
 (title )
+
 
 rem constrain deltaTime of MoveRate to representable tElapse ; 1= 100cs, 2 = 50cs, 3 = 33cs, 100 = 1cs
 rem 1, 2 and 3cs tick rates only likely to be achieved with low entitiy count or when using delta catch up mode
@@ -96,12 +113,9 @@ For /l %%i in (1 1 !#!) do if %%i lss 31 (rem frame generator restriction
   Set /a "_%%i.fL=(!random! %% 3 + 3)+1,_%%i.xL=1,_%%i.xH=wid-(%%i %%2),_%%i.w=1,_%%i.x=!random! %% (wid/2) + (wid/4)" || pause
   Set /a "_%%i.fH=(!random! %% 8 + 6)+1,_%%i.yL=1,_%%i.yH=hei+(%%i %%2),_%%i.h=1,_%%i.y=!random! %% (hei/2) + (hei/4)" || pause
 )
-For /f "tokens=1 delims==" %%G in ('Set MoveRate') Do Set "%%G="
 
 mode %wid%,%sHei%
 
-
-rem requires - + by sign value when prforming min / max boundary test
 
 if /i "!mode!" == "default" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-et)>>31)|(_%%i.rc*-1)),_%%i.mn=_%%i.md*(et+_%%i.mr)+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),_%%i.x+=_%%i.md*_%%i.sx,_%%i.x-=-1*((_%%i.xH-(_%%i.x+_%%i.w))>>31),_%%i.x+=-1*((_%%i.x-_%%i.xL)>>31),_%%i.y+=_%%i.md*_%%i.sy,_%%i.y-=-1*((_%%i.yH-(_%%i.y+_%%i.h))>>31),_%%i.y+=-1*((_%%i.y-_%%i.yL)>>31),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc"
 
@@ -123,13 +137,9 @@ Set ".11=\"   &REM ;||
 
 rem @mark clock by IcarusLives
 set "@mark=((((1^!clock:~0,2^!-100)*60+(1^!clock:~3,2^!-100))*60+(1^!clock:~6,2^!-100))*100+(1^!clock:~9,2^!-100))"
-rem set /a "step=%~1, maxCatchUp=step-1" 2> nul || Set /a "step=4, maxCatchUp=step-1" 
-
-<nul set /p "=%\E%[?25l"
 
 
 Set "metaVars=%=_whitespace_intended_=% @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}"
-
 ( Set "entities=" & Set "screen=%clearing%"
   for /l %%i in (1 1 !#!) Do (
     Set "metaVar=^^!metaVars:~%%i,1!"
@@ -142,14 +152,15 @@ Set "metaVars=%=_whitespace_intended_=% @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefg
 Set Frame=For /f "tokens=1-!#! delims= " %%@ in ("!entities:~1!") Do Echo(!Screen!%\E%[0m
 
 
+<nul set /p "=%\E%[?25l%\E%[H%\E%[0m%\E%[2J"
 
 2> nul ( %= unload =%
+  For %%U in ("MoveRate" "Arg" "Screen") Do For /f "tokens=1 delims==" %%G in ('Set %%~U') Do Set "%%G="
   for /l %%i in (1 1 !#!) Do Set "_%%i.c="
 
   Set "rWalker="
   Set "frame="
   Set "rand.hue="
-  Set "screen="
   Set "@mark="
   
   set "clock=!time: =0!"
