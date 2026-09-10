@@ -88,7 +88,7 @@ For /f "Delims=" %%K in ('%menu.Ask%') Do (
 rem random seed method by IcarusLives
 set /a "'=(%RANDOM%<<15)|%RANDOM%,'+=((('-1)>>31)&1)"
 set /a "`=(!RANDOM!<<15)|!RANDOM!,`+=(((`-1)>>31)&1)"
-set /a "prox=5"
+set /a "prox=4"
 
 if /i "!colorMode!" == "Random" Set rand.hue="rr=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(255-35+1)))+35,gg=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(255-35+1)))+35,bb=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(255-35+1)))+35,rr=rr*100/125,gg=gg*100/125,bb=bb*100/125"
 
@@ -110,20 +110,27 @@ For /l %%i in (1 1 !#!) do if %%i lss 31 (rem frame generator restriction
   Set "_%%i.c=%\E%[38;2;!rr!;!gg!;!bb!m"
   Set /a "delta=!random! %% !i! + 1"
   For /f "delims=" %%T in ("!Delta!") Do Set /a "_%%i.mr=!MoveRate%%T!"
-  Set /a "_%%i.fL=(!random! %% 3 + 3)+1,_%%i.xL=1,_%%i.xH=wid-(%%i %%2),_%%i.w=1,_%%i.x=!random! %% (wid/2) + (wid/4)" || pause
-  Set /a "_%%i.fH=(!random! %% 8 + 6)+1,_%%i.yL=1,_%%i.yH=hei+(%%i %%2),_%%i.h=1,_%%i.y=!random! %% (hei/2) + (hei/4)" || pause
+  Set /a "_%%i.fL=(!random! %% 3 + 3)+1,_%%i.xL=1,_%%i.xH=wid-(%%i %%2),_%%i.w=1,_%%i.x=!random! %% (wid/2) + (wid/4)"
+  Set /a "_%%i.fH=(!random! %% 8 + 6)+1,_%%i.yL=1,_%%i.yH=hei+(%%i %%2),_%%i.h=1,_%%i.y=!random! %% (hei/2) + (hei/4)"
 )
 
 mode %wid%,%sHei%
-Set /a _p.y=100,_p.x=100
+
+Set /a "p.mr=100/6"
+Set /a "p.fL=(!random! %% 3 + 3)+1,p.xL=1,p.xH=wid,p.w=1,p.x=!random! %% (wid/2) + (wid/4)"
+Set /a "p.fH=(!random! %% 8 + 6)+1,p.yL=1,p.yH=hei,p.h=1,p.y=!random! %% (hei/2) + (hei/4)"
 
 if /i "!mode!" == "default" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-et)>>31)|(_%%i.rc*-1)),_%%i.mn=_%%i.md*(et+_%%i.mr)+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),_%%i.x+=_%%i.md*_%%i.sx,_%%i.x-=-1*((_%%i.xH-(_%%i.x+_%%i.w))>>31),_%%i.x+=-1*((_%%i.x-_%%i.xL)>>31),_%%i.y+=_%%i.md*_%%i.sy,_%%i.y-=-1*((_%%i.yH-(_%%i.y+_%%i.h))>>31),_%%i.y+=-1*((_%%i.y-_%%i.yL)>>31),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc"
 
-if /i "!mode!" == "delta" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-1-et)>>31)|(_%%i.rc*-1)),cu=(-1*((_%%i.mn-1-et))/_%%i.mr),cu=((cu>>31)*cu)+cu+(((cu|-cu))>>31)+1,cu+=(((cu|-cu))>>31)+1,_%%i.mn=_%%i.md*(et+_%%i.mr)+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),_%%i.x+=_%%i.md*_%%i.sx*cu,_%%i.y+=_%%i.md*_%%i.sy*cu,_%%i.x+=((_%%i.x-_%%i.xL)>>31)*(-1*(_%%i.xL-_%%i.x)),_%%i.y+=((_%%i.y-_%%i.yL)>>31)*(-1*(_%%i.yL-_%%i.y)),?=(_%%i.x+_%%i.w-1)-_%%i.xH,_%%i.x=_%%i.xH+(?&(?>>31)),?=(_%%i.y+_%%i.h-1)-_%%i.yH,_%%i.y=_%%i.yH+(?&(?>>31)),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc,_%%i.cd-=(cu-1)*_%%i.md"
+if /i "!mode!" == "delta" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-1-et)>>31)|(_%%i.rc*-1)),cu=(-1*((_%%i.mn-1-et))/_%%i.mr),cu=((cu>>31)*cu)+cu+(((cu|-cu))>>31)+1,cu+=(((cu|-cu))>>31)+1,_%%i.mn=_%%i.md*(et+_%%i.mr)+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),_%%i.x+=_%%i.md*_%%i.sx*cu,_%%i.y+=_%%i.md*_%%i.sy*cu,_%%i.x+=((_%%i.x-_%%i.xL)>>31)*(-1*(_%%i.xL-_%%i.x)),_%%i.y+=((_%%i.y-_%%i.yL)>>31)*(-1*(_%%i.yL-_%%i.y)),?=(_%%i.x+_%%i.w-1)-_%%i.xH,_%%i.x=_%%i.xH+(?&(?>>31)),?=(_%%i.y+_%%i.h-1)-_%%i.yH,_%%i.y=_%%i.yH+(?&(?>>31)),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc"
 
-if /i "!mode!" == "chase" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-1-et)>>31)|(_%%i.rc*-1)),cu=(-1*((_%%i.mn-1-et))/_%%i.mr),cu=((cu>>31)*cu)+cu+(((cu|-cu))>>31)+1,cu+=(((cu|-cu))>>31)+1,_%%i.mn=_%%i.md*(et+_%%i.mr)+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),dx=(_.px-_%%i.x),?=dx>>31,abX=(dx^?)-?,dx=?|-((_%%i.x-_.px)>>31),dy=(_.py-_%%i.y),?=dy>>31,abY=(dy^?)-?,dy=?|-((_%%i.y-_.py)>>31),chase=-1*(((abY-prox)>>31)&((abX-prox)>>31)),_%%i.sx=chase*dx+((1-chase)*_%%i.sx),_%%i.sy=chase*dy+((1-chase)*_%%i.sy),_%%i.x+=_%%i.md*_%%i.sx*cu,_%%i.y+=_%%i.md*_%%i.sy*cu,_%%i.x+=((_%%i.x-_%%i.xL)>>31)*(-1*(_%%i.xL-_%%i.x)),_%%i.y+=((_%%i.y-_%%i.yL)>>31)*(-1*(_%%i.yL-_%%i.y)),?=(_%%i.x+_%%i.w-1)-_%%i.xH,_%%i.x=_%%i.xH+(?&(?>>31)),?=(_%%i.y+_%%i.h-1)-_%%i.yH,_%%i.y=_%%i.yH+(?&(?>>31)),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc,_%%i.cd-=(cu-1)*_%%i.md"
+if /i "!mode!" == "chase" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-1-et)>>31)|(_%%i.rc*-1)),cu=(-1*((_%%i.mn-1-et))/_%%i.mr),cu=((cu>>31)*cu)+cu+(((cu|-cu))>>31)+1,cu+=(((cu|-cu))>>31)+1,_%%i.mn=_%%i.md*(et+_%%i.mr)+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),dx=(_.px-_%%i.x),?=dx>>31,abX=(dx^?)-?,dx=?|-((_%%i.x-_.px)>>31),dy=(_.py-_%%i.y),?=dy>>31,abY=(dy^?)-?,dy=?|-((_%%i.y-_.py)>>31),chase=-1*(((abY-prox)>>31)&((abX-prox)>>31)),_%%i.sx=chase*dx+((1-chase)*_%%i.sx),_%%i.sy=chase*dy+((1-chase)*_%%i.sy),_%%i.x+=_%%i.md*_%%i.sx*cu,_%%i.y+=_%%i.md*_%%i.sy*cu,_%%i.x+=((_%%i.x-_%%i.xL)>>31)*(-1*(_%%i.xL-_%%i.x)),_%%i.y+=((_%%i.y-_%%i.yL)>>31)*(-1*(_%%i.yL-_%%i.y)),?=(_%%i.x+_%%i.w-1)-_%%i.xH,_%%i.x=_%%i.xH+(?&(?>>31)),?=(_%%i.y+_%%i.h-1)-_%%i.yH,_%%i.y=_%%i.yH+(?&(?>>31)),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc"
+
+if /i "!mode!" == "chase" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-1-et)>>31)|(_%%i.rc*-1)),cu=(-1*((_%%i.mn-1-et))/_%%i.mr),cu=((cu>>31)*cu)+cu+(((cu|-cu))>>31)+1,cu+=(((cu|-cu))>>31)+1,_%%i.mn=_%%i.md*(et+_%%i.mr)+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),dx=(p.x-_%%i.x),?=dx>>31,abX=(dx^?)-?,dx=?|-((_%%i.x-p.x)>>31),dy=(p.y-_%%i.y),?=dy>>31,abY=(dy^?)-?,dy=?|-((_%%i.y-p.y)>>31),chase=-1*(((abY-prox)>>31)&((abX-prox)>>31)),_%%i.sx=chase*dx+((1-chase)*_%%i.sx),_%%i.sy=chase*dy+((1-chase)*_%%i.sy),_%%i.x+=_%%i.md*_%%i.sx*cu,_%%i.y+=_%%i.md*_%%i.sy*cu,_%%i.x+=((_%%i.x-_%%i.xL)>>31)*(-1*(_%%i.xL-_%%i.x)),_%%i.y+=((_%%i.y-_%%i.yL)>>31)*(-1*(_%%i.yL-_%%i.y)),?=(_%%i.x+_%%i.w-1)-_%%i.xH,_%%i.x=_%%i.xH+(?&(?>>31)),?=(_%%i.y+_%%i.h-1)-_%%i.yH,_%%i.y=_%%i.yH+(?&(?>>31)),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc"
 
 if /i "!mode!" == "burst" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-et)>>31)|(_%%i.rc*-1)),_%%i.mn=_%%i.md*(et+(_%%i.mr-(_%%i.fH*_%%i.xc)))+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),_%%i.x+=_%%i.md*_%%i.sx,_%%i.x-=-1*((_%%i.xH-(_%%i.x+_%%i.w))>>31),_%%i.x+=-1*((_%%i.x-_%%i.xL)>>31),_%%i.y+=_%%i.md*_%%i.sy,_%%i.y-=-1*((_%%i.yH-(_%%i.y+_%%i.h))>>31),_%%i.y+=-1*((_%%i.y-_%%i.yL)>>31),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc"
+
+Set "Walker=Dirty|=(p.md=-1*((p.mn-et)>>31)|(p.rc*-1)),p.mn=p.md*(et+(p.mr-(p.fH*p.xc)))+((1-p.md)*p.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(p.fH-p.fL+1)))+p.fL,p.xd=-1*((p.xc-=p.md*-1*~((p.xc)>>31))>>31),p.xc+=p.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,p.sx=p.xd*rx+((1-p.xd)*p.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(p.fH-p.fL+1)))+p.fL,p.yd=-1*((p.yc-=p.md*-1*~((p.yc)>>31))>>31),p.yc+=p.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,p.sy=p.yd*ry+((1-p.yd)*p.sy),p.x+=p.md*p.sx,p.x-=-1*((p.xH-(p.x+p.w))>>31),p.x+=-1*((p.x-p.xL)>>31),p.y+=p.md*p.sy,p.y-=-1*((p.yH-(p.y+p.h))>>31),p.y+=-1*((p.y-p.yL)>>31),p.rc=-(-1*(-1-((p.sx|p.sy)|-(p.sy|p.sx))))|-(-1*~((p.xL-p.x)>>31))|-(-1*((p.xH-(p.x+p.w)-1)>>31))|-(-1*~((p.yL-p.y)>>31))|-(-1*((p.yH-(p.y+p.h)-1)>>31)),p.xc|=p.rc,p.yc|=p.rc"
 
 
 Set ".-1-1=\" &REM ;||  vector 'array' is indexed in accordance with
@@ -155,13 +162,13 @@ Set Frame=For /f "tokens=1-!#! delims= " %%@ in ("!entities:~1!") Do Echo(!Scree
 
 <nul set /p "=%\E%[?25l%\E%[H%\E%[0m%\E%[2J"
 
-Set /a "_.px=wid/2,_.py=hei/2"
 
 2> nul ( %= unload =%
   For %%U in ("MoveRate" "Arg" "Screen") Do For /f "tokens=1 delims==" %%G in ('Set %%~U') Do Set "%%G="
   for /l %%i in (1 1 !#!) Do Set "_%%i.c="
 
   Set "rWalker="
+  Set "Walker="
   Set "frame="
   Set "rand.hue="
   Set "@mark="
@@ -172,12 +179,12 @@ Set /a "_.px=wid/2,_.py=hei/2"
     if not "!time: =0!" == "!clock!" (
       set "clock=!time: =0!"
       set /a "et=%@mark%, et+=((et-lt)>>31&1)*8640000","Dirty=0",
-
+      set /a "%walker%"
       For /l %%i in (1 1 !#!) Do Set /a "%rWalker%"
       If !Dirty! NEQ 0 (
         Set /a "frame+=1,ttlE+=(et-lt),ips=100/(ttlE/frame),ttlE/=(-1*((999-frame)>>31))+1,frame/=(-1*((999-frame)>>31))+1,lt=et"
         Title ips:!ips!
-        %frame%%\E%[!_.py!;!_.px!HX
+        %frame%%\E%[!p.y!;!p.x!HX
       )
 ) ) )
 
