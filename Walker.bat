@@ -116,7 +116,7 @@ For /l %%i in (1 1 !#!) do if %%i lss 31 (rem frame generator restriction
 
 mode %wid%,%sHei%
 
-Set /a "p.mr=100/6"
+Set /a "p.mr=100/10"
 Set /a "p.fL=(!random! %% 3 + 3)+1,p.xL=1,p.xH=wid,p.w=1,p.x=!random! %% (wid/2) + (wid/4)"
 Set /a "p.fH=(!random! %% 8 + 6)+1,p.yL=1,p.yH=hei,p.h=1,p.y=!random! %% (hei/2) + (hei/4)"
 
@@ -126,7 +126,7 @@ if /i "!mode!" == "delta" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-1-et)>>31)|(
 
 if /i "!mode!" == "chase" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-1-et)>>31)|(_%%i.rc*-1)),cu=(-1*((_%%i.mn-1-et))/_%%i.mr),cu=((cu>>31)*cu)+cu+(((cu|-cu))>>31)+1,cu+=(((cu|-cu))>>31)+1,_%%i.mn=_%%i.md*(et+_%%i.mr)+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),dx=(_.px-_%%i.x),?=dx>>31,abX=(dx^?)-?,dx=?|-((_%%i.x-_.px)>>31),dy=(_.py-_%%i.y),?=dy>>31,abY=(dy^?)-?,dy=?|-((_%%i.y-_.py)>>31),chase=-1*(((abY-prox)>>31)&((abX-prox)>>31)),_%%i.sx=chase*dx+((1-chase)*_%%i.sx),_%%i.sy=chase*dy+((1-chase)*_%%i.sy),_%%i.x+=_%%i.md*_%%i.sx*cu,_%%i.y+=_%%i.md*_%%i.sy*cu,_%%i.x+=((_%%i.x-_%%i.xL)>>31)*(-1*(_%%i.xL-_%%i.x)),_%%i.y+=((_%%i.y-_%%i.yL)>>31)*(-1*(_%%i.yL-_%%i.y)),?=(_%%i.x+_%%i.w-1)-_%%i.xH,_%%i.x=_%%i.xH+(?&(?>>31)),?=(_%%i.y+_%%i.h-1)-_%%i.yH,_%%i.y=_%%i.yH+(?&(?>>31)),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc"
 
-if /i "!mode!" == "chase" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-1-et)>>31)|(_%%i.rc*-1)),cu=(-1*((_%%i.mn-1-et))/_%%i.mr),cu=((cu>>31)*cu)+cu+(((cu|-cu))>>31)+1,cu+=(((cu|-cu))>>31)+1,_%%i.mn=_%%i.md*(et+_%%i.mr)+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),dx=(p.x-_%%i.x),?=dx>>31,abX=(dx^?)-?,dx=?|-((_%%i.x-p.x)>>31),dy=(p.y-_%%i.y),?=dy>>31,abY=(dy^?)-?,dy=?|-((_%%i.y-p.y)>>31),chase=-1*(((abY-prox)>>31)&((abX-prox)>>31)),_%%i.sx=chase*dx+((1-chase)*_%%i.sx),_%%i.sy=chase*dy+((1-chase)*_%%i.sy),_%%i.x+=_%%i.md*_%%i.sx*cu,_%%i.y+=_%%i.md*_%%i.sy*cu,_%%i.x+=((_%%i.x-_%%i.xL)>>31)*(-1*(_%%i.xL-_%%i.x)),_%%i.y+=((_%%i.y-_%%i.yL)>>31)*(-1*(_%%i.yL-_%%i.y)),?=(_%%i.x+_%%i.w-1)-_%%i.xH,_%%i.x=_%%i.xH+(?&(?>>31)),?=(_%%i.y+_%%i.h-1)-_%%i.yH,_%%i.y=_%%i.yH+(?&(?>>31)),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc"
+if /i "!mode!" == "chase" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-1-et)>>31)|(_%%i.rc*-1)),cu=(-1*((_%%i.mn-1-et))/_%%i.mr),cu=((cu>>31)*cu)+cu+(((cu|-cu))>>31)+1,cu+=(((cu|-cu))>>31)+1,_%%i.mn=_%%i.md*(et+_%%i.mr)+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),dx=(p.x-_%%i.x),?=dx>>31,abX=(dx^?)-?,dx=?|-((_%%i.x-p.x)>>31),dy=(p.y-_%%i.y),?=dy>>31,abY=(dy^?)-?,dy=?|-((_%%i.y-p.y)>>31),chase=-1*(((abY-prox)>>31)&((abX-prox)>>31)),_%%i.sx=chase*dx+((1-chase)*_%%i.sx),cu=chase*1+((1-chase)*cu),_%%i.sy=chase*dy+((1-chase)*_%%i.sy),_%%i.x+=_%%i.md*_%%i.sx*cu,_%%i.y+=_%%i.md*_%%i.sy*cu,_%%i.x+=((_%%i.x-_%%i.xL)>>31)*(-1*(_%%i.xL-_%%i.x)),_%%i.y+=((_%%i.y-_%%i.yL)>>31)*(-1*(_%%i.yL-_%%i.y)),?=(_%%i.x+_%%i.w-1)-_%%i.xH,_%%i.x=_%%i.xH+(?&(?>>31)),?=(_%%i.y+_%%i.h-1)-_%%i.yH,_%%i.y=_%%i.yH+(?&(?>>31)),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc"
 
 if /i "!mode!" == "burst" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-et)>>31)|(_%%i.rc*-1)),_%%i.mn=_%%i.md*(et+(_%%i.mr-(_%%i.fH*_%%i.xc)))+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),_%%i.x+=_%%i.md*_%%i.sx,_%%i.x-=-1*((_%%i.xH-(_%%i.x+_%%i.w))>>31),_%%i.x+=-1*((_%%i.x-_%%i.xL)>>31),_%%i.y+=_%%i.md*_%%i.sy,_%%i.y-=-1*((_%%i.yH-(_%%i.y+_%%i.h))>>31),_%%i.y+=-1*((_%%i.y-_%%i.yL)>>31),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc"
 
@@ -218,3 +218,38 @@ rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|^          ;  0  | -1      
    -(-1*((_%%i.yH-(_%%i.y+_%%i.h))>>31)-1)                      ;  0  | -1       _#.y  == max y
 _%%i.xc|=rc                                                     ; xc  | -1         rc  == -1
 _%%i.yc|=rc                                                     ; yc  | -1         rc  == -1
+
+Chase:
+rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-1-et)>>31)|(_%%i.rc*-1))                                  ; flag Dirty if 'Move Do' or 'Reset Cooldown' equ -1
+cu=(-1*((_%%i.mn-1-et))/_%%i.mr),cu=((cu>>31)*cu)+cu+(((cu|-cu))>>31)+1,cu+=(((cu|-cu))>>31)+1 ; cu = 'catchup' coefficient multiplier for frames due since last evaluation
+_%%i.mn=_%%i.md*(et+_%%i.mr)+((1-_%%i.md)*_%%i.mn)                                             ; preserve or set new 'Move Next' time if 'Move Do' equ 1
+xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL                   ; generate cooldown magnitude for next x movement cycle
+_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31)                                        ; decrease x cooldown if md equ 1 and xc geq 0
+_%%i.xc+=_%%i.xd*xe                                                                            ; increase x cooldown duration if 'x do' equ 1
+rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2                                         ; generate random sign for next x movement change
+_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx)                                                       ; apply sign change if 'x do' equ 1
+ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL                   ; as above for y axis
+_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31)
+_%%i.yc+=_%%i.yd*ye
+ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2
+_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy)
+dx=(_.px-_%%i.x),?=dx>>31,abX=(dx^?)-?,dx=?|-((_%%i.x-_.px)>>31)                               ; generate player relative x sign and Abs distance
+dy=(_.py-_%%i.y),?=dy>>31,abY=(dy^?)-?,dy=?|-((_%%i.y-_.py)>>31)                               ; generate player relative y sign and Abs distance
+chase=-1*(((abY-prox)>>31)&((abX-prox)>>31))                                                   ; if prox lss ABs radius for both x and y, chase equ 1
+_%%i.sx=chase*dx+((1-chase)*_%%i.sx)                                                           ; preserve current 'sign x' if chase equ 0; else adopt player relative sign
+_%%i.sy=chase*dy+((1-chase)*_%%i.sy)                                                           ; as above for y axis
+_%%i.x+=_%%i.md*_%%i.sx*cu                                                                     ; apply movement at intended magnitude for time Elapsed
+_%%i.y+=_%%i.md*_%%i.sy*cu
+_%%i.x+=((_%%i.x-_%%i.xL)>>31)*(-1*(_%%i.xL-_%%i.x))                                           ; clamp min
+_%%i.y+=((_%%i.y-_%%i.yL)>>31)*(-1*(_%%i.yL-_%%i.y))
+?=(_%%i.x+_%%i.w-1)-_%%i.xH,_%%i.x=_%%i.xH+(?&(?>>31))                                         ; clamp max
+?=(_%%i.y+_%%i.h-1)-_%%i.yH,_%%i.y=_%%i.yH+(?&(?>>31))
+_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|^                                    ; rc equ -1 if any condition true. deny idling by forcing vector change
+        -(-1*~((_%%i.xL-_%%i.x)>>31))|^                                                        ; left boundary bounce by forcing vector change
+        -(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|^                                              ; right boundary bounce ...
+        -(-1*~((_%%i.yL-_%%i.y)>>31))|^                                                        ; top boundary ...
+        -(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31))                                                ; bottom boundary ...
+_%%i.xc|=_%%i.rc                                                                               ; xc = xc or -1
+_%%i.yc|=_%%i.rc                                                                               ; yc = yc or -1
+
+
