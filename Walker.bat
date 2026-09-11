@@ -13,7 +13,12 @@ Setlocal EnableDelayedExpansion
 
 For /f %%E in ('echo prompt $E^|%comspec%') do set \E=%%E
 
-For /f "delims=124456-? " %%V in ('echo %*') do goto:skip
+rem call help display if any invalid args.
+If not "%~1" == "" For /f "delims=123456 " %%V in ('echo %*') do if not "%~1" == "-?" (
+  Call "%~f0" -?
+  exit /b 0
+)
+
 if not %errorlevel% == 0 goto:skip
 
 Set args= 1:Dimensions 2:Walker.Count 3:Speed.Mode 4:Screen.Clearing 5:Color.Mode
@@ -124,8 +129,6 @@ if /i "!mode!" == "default" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-et)>>31)|(
 
 if /i "!mode!" == "delta" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-1-et)>>31)|(_%%i.rc*-1)),cu=(-1*((_%%i.mn-1-et))/_%%i.mr),cu=((cu>>31)*cu)+cu+(((cu|-cu))>>31)+1,cu+=(((cu|-cu))>>31)+1,_%%i.mn=_%%i.md*(et+_%%i.mr)+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),_%%i.x+=_%%i.md*_%%i.sx*cu,_%%i.y+=_%%i.md*_%%i.sy*cu,_%%i.x+=((_%%i.x-_%%i.xL)>>31)*(-1*(_%%i.xL-_%%i.x)),_%%i.y+=((_%%i.y-_%%i.yL)>>31)*(-1*(_%%i.yL-_%%i.y)),?=(_%%i.x+_%%i.w-1)-_%%i.xH,_%%i.x=_%%i.xH+(?&(?>>31)),?=(_%%i.y+_%%i.h-1)-_%%i.yH,_%%i.y=_%%i.yH+(?&(?>>31)),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc"
 
-if /i "!mode!" == "chase" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-1-et)>>31)|(_%%i.rc*-1)),cu=(-1*((_%%i.mn-1-et))/_%%i.mr),cu=((cu>>31)*cu)+cu+(((cu|-cu))>>31)+1,cu+=(((cu|-cu))>>31)+1,_%%i.mn=_%%i.md*(et+_%%i.mr)+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),dx=(_.px-_%%i.x),?=dx>>31,abX=(dx^?)-?,dx=?|-((_%%i.x-_.px)>>31),dy=(_.py-_%%i.y),?=dy>>31,abY=(dy^?)-?,dy=?|-((_%%i.y-_.py)>>31),chase=-1*(((abY-prox)>>31)&((abX-prox)>>31)),_%%i.sx=chase*dx+((1-chase)*_%%i.sx),_%%i.sy=chase*dy+((1-chase)*_%%i.sy),_%%i.x+=_%%i.md*_%%i.sx*cu,_%%i.y+=_%%i.md*_%%i.sy*cu,_%%i.x+=((_%%i.x-_%%i.xL)>>31)*(-1*(_%%i.xL-_%%i.x)),_%%i.y+=((_%%i.y-_%%i.yL)>>31)*(-1*(_%%i.yL-_%%i.y)),?=(_%%i.x+_%%i.w-1)-_%%i.xH,_%%i.x=_%%i.xH+(?&(?>>31)),?=(_%%i.y+_%%i.h-1)-_%%i.yH,_%%i.y=_%%i.yH+(?&(?>>31)),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc"
-
 if /i "!mode!" == "chase" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-1-et)>>31)|(_%%i.rc*-1)),cu=(-1*((_%%i.mn-1-et))/_%%i.mr),cu=((cu>>31)*cu)+cu+(((cu|-cu))>>31)+1,cu+=(((cu|-cu))>>31)+1,_%%i.mn=_%%i.md*(et+_%%i.mr)+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),dx=(p.x-_%%i.x),?=dx>>31,abX=(dx^?)-?,dx=?|-((_%%i.x-p.x)>>31),dy=(p.y-_%%i.y),?=dy>>31,abY=(dy^?)-?,dy=?|-((_%%i.y-p.y)>>31),chase=-1*(((abY-prox)>>31)&((abX-prox)>>31)),_%%i.sx=chase*dx+((1-chase)*_%%i.sx),cu=chase*1+((1-chase)*cu),_%%i.sy=chase*dy+((1-chase)*_%%i.sy),_%%i.x+=_%%i.md*_%%i.sx*cu,_%%i.y+=_%%i.md*_%%i.sy*cu,_%%i.x+=((_%%i.x-_%%i.xL)>>31)*(-1*(_%%i.xL-_%%i.x)),_%%i.y+=((_%%i.y-_%%i.yL)>>31)*(-1*(_%%i.yL-_%%i.y)),?=(_%%i.x+_%%i.w-1)-_%%i.xH,_%%i.x=_%%i.xH+(?&(?>>31)),?=(_%%i.y+_%%i.h-1)-_%%i.yH,_%%i.y=_%%i.yH+(?&(?>>31)),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc"
 
 if /i "!mode!" == "burst" Set "rWalker=Dirty|=(_%%i.md=-1*((_%%i.mn-et)>>31)|(_%%i.rc*-1)),_%%i.mn=_%%i.md*(et+(_%%i.mr-(_%%i.fH*_%%i.xc)))+((1-_%%i.md)*_%%i.mn),xe=(`^=`<<13,`^=`>>17,`^=`<<5,((`&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.xd=-1*((_%%i.xc-=_%%i.md*-1*~((_%%i.xc)>>31))>>31),_%%i.xc+=_%%i.xd*xe,rx=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sx=_%%i.xd*rx+((1-_%%i.xd)*_%%i.sx),ye=('^='<<13,'^='>>17,'^='<<5,(('&0x7FFFFFFF)%%(_%%i.fH-_%%i.fL+1)))+_%%i.fL,_%%i.yd=-1*((_%%i.yc-=_%%i.md*-1*~((_%%i.yc)>>31))>>31),_%%i.yc+=_%%i.yd*ye,ry=(`^=`<<13,`^=`>>17,`^=`<<5,(('&0x7FFFFFFF)%%3+1))-2,_%%i.sy=_%%i.yd*ry+((1-_%%i.yd)*_%%i.sy),_%%i.x+=_%%i.md*_%%i.sx,_%%i.x-=-1*((_%%i.xH-(_%%i.x+_%%i.w))>>31),_%%i.x+=-1*((_%%i.x-_%%i.xL)>>31),_%%i.y+=_%%i.md*_%%i.sy,_%%i.y-=-1*((_%%i.yH-(_%%i.y+_%%i.h))>>31),_%%i.y+=-1*((_%%i.y-_%%i.yL)>>31),_%%i.rc=-(-1*(-1-((_%%i.sx|_%%i.sy)|-(_%%i.sy|_%%i.sx))))|-(-1*~((_%%i.xL-_%%i.x)>>31))|-(-1*((_%%i.xH-(_%%i.x+_%%i.w)-1)>>31))|-(-1*~((_%%i.yL-_%%i.y)>>31))|-(-1*((_%%i.yH-(_%%i.y+_%%i.h)-1)>>31)),_%%i.xc|=_%%i.rc,_%%i.yc|=_%%i.rc"
@@ -153,15 +156,24 @@ Set "metaVars=%=_whitespace_intended_=% @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefg
     Set "metaVar=^^!metaVars:~%%i,1!"
     For /f "delims=" %%} in ("!metaVar!") Do (
       Set "entities=!entities! ^!_%%i.sy^!^!_%%i.sx^!"
-      set "screen=!screen!!_%%i.c!%\E%[^!_%%i.y^!;^!_%%i.x^!H^!.%%%%}^!%\E%[0m"
+      set "screen=!screen!!_%%i.c!%\E%[^!_%%i.y^!;^!_%%i.x^!H^!.%%%%}^!"
   ) )
   Set "metaVars="
 )
-Set Frame=For /f "tokens=1-!#! delims= " %%@ in ("!entities:~1!") Do Echo(!Screen!%\E%[0m
 
+If /i "!mode!" == "chase" (
+  set "screen=!screen!%\E%[38;2;^!p.c^!;0;0m%\E%[^!p.y^!;^!p.x^!HX%\E%[0m"
+) 
+For /l %%i in (55 2 210) do set "p.hu=!p.hu!%%i,"
+For /l %%i in (210 -2 55) do set "p.hu=!p.hu!%%i,"
+Set p.hu=!p.hu:~0,-1!
+
+Set Frame=For /f "tokens=1-!#! delims= " %%@ in ("!entities:~1!") Do Echo(!Screen!%\E%[0m
 
 <nul set /p "=%\E%[?25l%\E%[H%\E%[0m%\E%[2J"
 
+Set "p.c="
+ 
 
 2> nul ( %= unload =%
   For %%U in ("MoveRate" "Arg" "Screen") Do For /f "tokens=1 delims==" %%G in ('Set %%~U') Do Set "%%G="
@@ -179,12 +191,13 @@ Set Frame=For /f "tokens=1-!#! delims= " %%@ in ("!entities:~1!") Do Echo(!Scree
     if not "!time: =0!" == "!clock!" (
       set "clock=!time: =0!"
       set /a "et=%@mark%, et+=((et-lt)>>31&1)*8640000","Dirty=0",
-      set /a "%walker%"
+      set /a "%walker%","p.c=p.hu"
+      Set "p.hu=!p.hu:*,=!,!p.c!"
       For /l %%i in (1 1 !#!) Do Set /a "%rWalker%"
       If !Dirty! NEQ 0 (
         Set /a "frame+=1,ttlE+=(et-lt),ips=100/(ttlE/frame),ttlE/=(-1*((999-frame)>>31))+1,frame/=(-1*((999-frame)>>31))+1,lt=et"
         Title ips:!ips!
-        %frame%%\E%[!p.y!;!p.x!HX
+        %frame%
       )
 ) ) )
 
